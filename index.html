@@ -1,32 +1,217 @@
 <!DOCTYPE html>
 <html lang="en-es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chrono Task</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://jsdelivr.net">
-</head>
-<body>
-    <header class="navbar navbar-expand-lg navbar-dark bg-dark px-4">
-        <div class="navbar-brand d-flex align-items-center">
-            <span>Chrono Task</span>
-          
-        </div>
-        <div class="d-flex gap-3">
-            <button class="btn btn-outline-info" type="button"> </button>
-            <button class="btn btn-outline-warning" type="button"> </button>
-            <button class="btn btn-outline-secondary" type="button"> </button>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Chrono Task</title>
+    <link rel="stylesheet" href="/css/style.css">
+       <link rel="stylesheet" href="./node_modules/bootstrap/dist/css/bootstrap.min.css">
+    </head>
+    <body>
+     <!-- NAVBAR SUPERIOR -->
+        <header class="navbar navbar-expand-lg navbar-dark bg-dark px-4 border-bottom border-secondary">
+            <div class="navbar-brand d-flex align-items-center">
+                <img src="logo1.png" alt="logo" style="width: 50px; height: 50px;" class="me-2">
+                <span>Chrono Task</span>
+            </div>
+            <div class="d-flex gap-3">
+                <button class="btn btn-outline-info" type="button" data-bs-toggle="modal" data-bs-target="#chronoMatrixModal"> 
+                    <i class="bi bi-calendar3"></i> Calendario
+                </button>
+                <button class="btn btn-outline-warning" type="button"> 
+                <i class="bi bi-star-fill"></i>
+                </button>
+                <button class="btn btn-outline-secondary" type="button"> 
+                    <i class="bi bi-trash3"></i>
+                </button>
+            </div>       
+        </header>
 
+        <!-- CUERPO PRINCIPAL -->
+        <main class="container-fluid py-4 text-light">
+            <div class="row g-4">
+                
+                <!-- COLUMNA IZQUIERDA: CONTROL (Ocupa 4 de 12 espacios) -->
+                <div class="col-md-4 d-flex flex-column gap-4"> 
+                    
+                   
+                    <section class="p-4 border border-secondary rounded bg-dark text-center position-relative overflow-hidden">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <span class="small text-light-monospace">// CORE_STATUS</span>
+                            <span class="badge bg-dark text-info border border-info small" id="coreState">STANDBY</span>
+                        </div>
+                    
+                        <div class="d-flex justify-content-center align-items-center my-4 position-relative" style="height: 160px;">
+                            <div class="position-absolute rounded-circle border border-info opacity-25 pulse-ring" style="width: 140px; height: 140px;"></div>
+                            <div class="rounded-circle d-flex align-items-center justify-content-center neural-orbe" id="neuralCore">
+                                <i class="bi bi-cpu fs-2 text-info text-opacity-75"></i>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-3 border-top border-secondary pt-2 mb-3">
+                            <div class="d-flex justify-content-between small">
+                                <span class="text-muted">Sincronización:</span>
+                                <span class="text-info fw-bold id-percentage" id="syncPercentage">0%</span>
+                            </div>
+                        </div>
+                        <h5>Núcleo de Tareas</h5>
+                        <p class="text-primary small m-0">Progreso de sincronización</p>
+                    </section>
+                    
+                    
+                    <section class="p-4 border border-secondary rounded bg-dark">
+                        <form id="taskForm">
+                            <div class="mb-3">
+                                <label class="form-label small text-light">Nombre de la Actividad</label>
+                                <input type="text" class="form-control" placeholder="Escribe nombre de la actividad">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label small text-light">Nivel de Impacto (Prioridad)</label>
+                                <select class="form-select">
+                                    <option value="baja">Baja</option>
+                                    <option value="media">Media</option>
+                                    <option value="alta">Alta</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label small text-light">Fecha y Hora Límite</label>
+                                <input type="datetime-local" class="form-control">
+                            </div>
+                            <button type="submit" class="btn btn-warning btn-lg w-100 fw-bold">
+                                <i class="bi bi-lightning-charge-fill"></i> Agregar Tarea
+                            </button>
+                        </form>
+                    </section>
+                </div>
 
-        </div>
+                <!-- COLUMNA DERECHA: TABLERO (Ocupa 8 de 12 espacios) -->
+                <div class="col-md-8">
+                    <section class="p-4 border border-secondary rounded bg-dark h-100">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h5 class="text-info m-0">Matriz de Tareas</h5>
+                            <span class="badge bg-outline-info text-info border border-info small" id="taskCounter">1 Nodo Activo</span>
+                        </div>
+                        
+                        <div class="row row-cols-1 row-cols-md-2 g-3" id="taskContainer">
+                            <!-- Tarjeta de Prueba -->
+                            <div class="col">
+                                <div class="card bg-secondary bg-opacity-10 text-light border border-secondary h-100 p-3">
+                                    <div class="card-body p-0 d-flex flex-column justify-content-between">
+                                        <div>
+                                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                                    <h6 class="card-title fw-bold m-0 text-white">Maquetar estructura HTML</h6>
+                                                    <span class="badge bg-danger text-white fs-xs">Crítica</span>
+                                            </div>
+                                            <p class="card-text small text-light mb-3">Límite: 2026-10-30 // 23:59</p>
+                                        </div>
+                                        <div class="d-flex justify-content-between align-items-center mt-2 border-top border-secondary pt-2">
+                                            <span class="small text-warning"><i class="bi bi-gear-fill spinner-rotate"></i> Pendiente</span>
+                                            <span class="text-info small">Haz clic para abrir núcleo</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </main>
+        <!-- MODAL DE MATRIZ DE CALENDARIO GIGANTE -->
+        <div class="modal fade" id="chronoMatrixModal" tabindex="-1" aria-labelledby="chronoMatrixModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-xl modal-dialog-centered">
+                <div class="modal-content bg-dark border-secondary text-light p-4 shadow-lg">
+                    
+                    <!-- Encabezado del Modal -->
+                    <div class="modal-header border-secondary d-flex justify-content-between align-items-center pb-3">
+                        <div>
+                            <h4 class="modal-title fw-bold text-white" id="chronoMatrixModalLabel">CHRONO_MATRIX</h4>
+                            <span class="small text-light font-monospace">Noviembre 2026 // Vista Mensual</span>
+                        </div>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
 
+                    <!-- Cuerpo del Modal -->
+                    <div class="modal-body p-0 mt-4">
+                                    
+                        <!--  MENSUAL -->
+                        <div id="calendarMonthView">
+                            <div class="chrono-weekdays-row mb-2">
+                                <div>DOM</div><div>LUN</div><div>MAR</div><div>MIÉ</div><div>JUE</div><div>VIE</div><div>SÁB</div>
+                            </div>
+                            
+                            <div class="chrono-days-matrix">
+                                <div class="matrix-day-box empty"></div>
+                                <div class="matrix-day-box empty"></div>
+                                
+                                <div class="matrix-day-box"><span class="day-number">1</span></div>
+                                <div class="matrix-day-box"><span class="day-number">2</span></div>
+                                <div class="matrix-day-box"><span class="day-number">3</span></div>
+                                
+                                <div class="matrix-day-box day-has-tasks">
+                                    <span class="day-number">4</span>
+                                    <div class="task-bar-block bg-success text-white">🧠 Estructura HTML</div>
+                                </div>
+                                
+                                <div class="matrix-day-box"><span class="day-number">5</span></div>
+                                
+                                <div class="matrix-day-box day-has-tasks">
+                                    <span class="day-number">6</span>
+                                    <div class="task-bar-block bg-danger text-white">
+                                        <i class="bi bi-exclamation-triangle-fill"></i> Backend Java
+                                    </div>
+                                </div>
 
-        
-    </header>
-    <main>
+                                <div class="matrix-day-box"><span class="day-number">7</span></div>
+                                <div class="matrix-day-box"><span class="day-number">8</span></div>
+                                <div class="matrix-day-box"><span class="day-number">9</span></div>
+                                <div class="matrix-day-box"><span class="day-number">10</span></div>
+                                <div class="matrix-day-box"><span class="day-number">11</span></div>
+                                <div class="matrix-day-box"><span class="day-number">12</span></div>
+                                <div class="matrix-day-box"><span class="day-number">13</span></div>
+                                <div class="matrix-day-box"><span class="day-number">14</span></div>
+                                <div class="matrix-day-box"><span class="day-number">15</span></div>
+                                <div class="matrix-day-box"><span class="day-number">16</span></div>
+                                <div class="matrix-day-box"><span class="day-number">17</span></div>
+                                <div class="matrix-day-box"><span class="day-number">18</span></div>
+                                <div class="matrix-day-box"><span class="day-number">19</span></div>
+                                <div class="matrix-day-box"><span class="day-number">20</span></div>
+                                <div class="matrix-day-box"><span class="day-number">21</span></div>
+                                <div class="matrix-day-box"><span class="day-number">22</span></div>
+                                <div class="matrix-day-box"><span class="day-number">23</span></div>
+                                <div class="matrix-day-box"><span class="day-number">24</span></div>
+                                <div class="matrix-day-box"><span class="day-number">25</span></div>
+                                <div class="matrix-day-box"><span class="day-number">26</span></div>
+                                <div class="matrix-day-box"><span class="day-number">27</span></div>
+                                <div class="matrix-day-box"><span class="day-number">28</span></div>
+                                <div class="matrix-day-box"><span class="day-number">29</span></div>
+                                <div class="matrix-day-box"><span class="day-number">30</span></div>
+                            </div> 
+                        </div> 
+                        
+                        <!--  SELECCIÓN POR AÑOS ) -->
+                        <div id="calendarYearView" class="d-none">
+                            <div class="chrono-matrix-title mb-3 font-monospace text-warning small">// TIMELINE_SELECT: Selecciona el año de procesamiento</div>
+                            <div class="chrono-years-matrix">
+                                <div class="matrix-year-box">2024</div>
+                                <div class="matrix-year-box">2025</div>
+                                <div class="matrix-year-box current-year">2026 <span class="core-dot"></span></div>
+                                <div class="matrix-year-box">2027</div>
+                                <div class="matrix-year-box">2028</div>
+                                <div class="matrix-year-box">2029</div>
+                                <div class="matrix-year-box">2030</div>
+                                <div class="matrix-year-box">2031</div>
+                                <div class="matrix-year-box">2032</div>
+                                <div class="matrix-year-box">2033</div>
+                                <div class="matrix-year-box">2034</div>
+                                <div class="matrix-year-box">2035</div>
+                            </div>
+                        </div>
 
-    </main>
-    <script href="app.js"></script>
-</body>
+                    </div> 
+                </div> 
+            </div> 
+        </div> 
+
+        <script src="./node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    </body>
 </html>
