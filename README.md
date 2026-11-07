@@ -35,8 +35,4 @@ El proyecto está estructurado en dos grandes fases de desarrollo:
 
 ---
 
-## 🚀 Instalación y Uso Local
 
-### Requisitos Previos
-*   Un navegador web moderno (Chrome, Edge, Firefox).
-*   [Opcional para Fase Backend] IntelliJ IDEA o tu IDE Java de preferencia.
