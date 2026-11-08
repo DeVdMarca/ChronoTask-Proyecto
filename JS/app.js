@@ -1,4 +1,4 @@
-let= listaTareas = [];
+let= listaTareas = JSON.parse(localStorage.getItem("misTareasGuardadas")) || [];
 
 const formularioTareas = document.querySelector("#taskForm");
 
@@ -9,7 +9,7 @@ formularioTareas.addEventListener("submit", function(evento) {
     const nombre = document.querySelector('#taskForm input[type="text"]').value;
     const prioridad = document.querySelector('#taskForm select').value;
     const fechaLimite = document.querySelector('#taskForm input[type="datetime-local"]').value;
-    console.log("Actividad:", nombre, "// Prioridad:", prioridad, "// Límite:", fechaLimite);
+   // console.log("Actividad:", nombre, "// Prioridad:", prioridad, "// Límite:", fechaLimite);
 
     // .trim borra los espacios en blanco invisibles
     if(nombre.trim() ==="") { 
@@ -30,6 +30,7 @@ formularioTareas.addEventListener("submit", function(evento) {
     };
 
     listaTareas.push(nuevaTarea);
+    localStorage.setItem("misTareasGuardadas", JSON.stringify(listaTareas));
 
     formularioTareas.reset(); // Limpia el formulario después de enviar la tarea
     pintarTareas(); // Llama a la función para pintar las tareas en el contenedor
@@ -63,6 +64,7 @@ function pintarTareas(){
         const estructuraTarjeta = `
         <div class="col">
             <div class="card bg-secondary bg-opacity-10 text-light border-secondary p-3">
+                <button onclick="eliminarTareas(${tarea.id})" class="btn-close btn-close-white position-absolute top-0 end-0 m-2 fs-xs" style="font-size: 0.75rem;" aria-label="Eliminar"></button>
                 <div class="d-flex justify-content-between align-items-center mb-2">
                     <h6 class="fw-bold m-0 text-white">${tarea.titulo}</h6>
                     <span class="badge ${claseColor} fs-xs text-uppercase">${tarea.impacto}</span>
@@ -78,7 +80,19 @@ function pintarTareas(){
 
 console.log("¡Formulario detectado! El sensor está funcionando.");
 
+function eliminarTareas(idRecibido) {
+    listaTareas= listaTareas.filter(function(tarea) {
+        return tarea.id!== idRecibido;
+    });
 
+    localStorage.setItem("misTareasGuardadas", JSON.stringify(listaTareas));
+
+    pintarTareas();
+
+    //console.log("Tarea eliminada. Almacen de tareas actualizado:", listaTareas);
+}
+
+pintarTareas(); // Llama a la función para pintar las tareas al cargar la página
 
 
 
