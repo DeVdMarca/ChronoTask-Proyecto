@@ -34,6 +34,7 @@ formularioTareas.addEventListener("submit", function(evento) {
 
     formularioTareas.reset(); // Limpia el formulario después de enviar la tarea
     pintarTareas(); // Llama a la función para pintar las tareas en el contenedor
+    actualizarContador(); // Llama a la función para actualizar el contador de tareas
 
     console.log("Almacen de tareas : " , listaTareas);
 
@@ -82,22 +83,24 @@ console.log("¡Formulario detectado! El sensor está funcionando.");
 
 function eliminarTareas(idRecibido) {
     listaTareas= listaTareas.filter(function(tarea) {
-        return tarea.id!== idRecibido;
+        return tarea.id !== idRecibido;
     });
 
     localStorage.setItem("misTareasGuardadas", JSON.stringify(listaTareas));
 
     pintarTareas();
-
+    actualizarContador();
     //console.log("Tarea eliminada. Almacen de tareas actualizado:", listaTareas);
 }
 
 pintarTareas(); // Llama a la función para pintar las tareas al cargar la página
+actualizarContador(); // Llama a la función para actualizar el contador al cargar la página
 
-
-
-
-
-
+function actualizarContador() {
+    const elementoContador = document.getElementById("taskCounter");
+    if (elementoContador) {
+        elementoContador.innerHTML = `${listaTareas.length} Nodos Activos`;
+    }
+}
 
 
