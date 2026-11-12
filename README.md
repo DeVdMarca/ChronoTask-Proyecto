@@ -33,6 +33,9 @@ El proyecto está estructurado en dos grandes fases de desarrollo:
 *   **Base de Datos SQL:** Persistencia formal de los datos y esquemas de tareas.
 *   **Operaciones CRUD:** Controladores lógicos para Crear, Leer, Actualizar y Eliminar nodos de trabajo de forma segura.
 
----
+---FIGMA ------
+https://trello.com/invite/b/6ae26837bc67c7e06059cfcf/ATTI04a7a816d92582f7238f31dfa8bef2b7E8CCE846/chronotask
+---TRELLO-------
+(https://www.figma.com/design/fDTXii2UFBu3EwizoPNYBa/Chrono-Task?node-id=0-1&t=Bnm9Ecvm5Bgosk1O-1)
 
 
