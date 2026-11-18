@@ -8,12 +8,12 @@
     letter-spacing: 0.5px;
 }
 
-/* PERSONALIZACIÓN DEL MODAL OSCURO */
+/* personalizacion del modal */
 .modal-content {
     background-color: #0b0f19 !important; 
 }
 
-/* CONTROLES DEL FORMULARIO (MODO CYBER OSCURO) */
+/* controles del formulario (MODO CYBER OSCURO) */
 .form-control, .form-select {
     background-color: #e7e9f0 !important; 
     color: #080101 !important;          
@@ -28,10 +28,10 @@
 
 /* Invierte el icono del calendario nativo para que sea blanco */
 input[type="datetime-local"]::-webkit-calendar-picker-indicator {
-    filter: invert(1); 
+   -webkit-calendar-picker-indicator: 0.5
 }
 
-/* EL ORBE CENTRAL  */
+/* orbe central  */
 .neural-orbe {
     width: 90px;
     height: 90px;
@@ -41,7 +41,7 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
     transition: all 0.3s ease-in-out;
 }
 
-/* ANIMACIONES DEL NÚCLEO */
+/*animaciones */
 .pulse-ring {
     animation: corePulse 2s infinite ease-in-out;
 
@@ -69,10 +69,10 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
 }
 
 /* ==========================================================================
-   MATRIX CALENDAR - REJILLAS DE ALTO CONTRASTE (CHRONO TASK)
+  CALENDARIO 
    ========================================================================== */
 
-/* REJILLA DE LOS TÍTULOS DE LOS DÍAS */
+/* rejilla de titulos */
 .chrono-weekdays-row {
     display: grid !important;
     grid-template-columns: repeat(7, 1fr) !important;
@@ -86,7 +86,7 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
     margin-bottom: 10px;
 }
 
-/* LA REJILLA MAESTRA DE LAS CAJAS DEL MES */
+/* rejilla del mes */
 .chrono-days-matrix {
     display: grid !important;
     grid-template-columns: repeat(7, 1fr) !important;
@@ -95,7 +95,7 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
     margin-top: 10px;
 }
 
-/* CAJA INDIVIDUAL DE CADA DÍA */
+/* caja individual del dia */
 .matrix-day-box {
     background-color: #070a12 !important; 
     border: 1px solid rgba(255, 255, 255, 0.05) !important;
@@ -121,7 +121,7 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
     text-align: left;
 }
 
-/* LA BARRA DE LAS TAREAS GUARDADAS */
+/* barra de tareas */
 .task-bar-block {
     font-size: 0.75rem;
     padding: 4px 6px;
@@ -135,7 +135,7 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
     text-overflow: ellipsis;
 }
 
-/* REJILLA MAESTRA DE AÑOS */
+/* rejilla de años */
 .chrono-years-matrix {
     display: grid !important;
     grid-template-columns: repeat(4, 1fr) !important;
@@ -214,13 +214,13 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
     }
 }
 
-/* 2. AUMENTAMOS EL TIEMPO A 0.85 SEGUNDOS PARA QUE SEA MUY VISIBLE */
+
 .tarjeta-hacker {
     animation: conexionNeuronal 1.0s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
     transition: transform 0.85s ease, border-color 0.25s ease, box-shadow 0.25s ease;
 }
 
-/* 3. EFECTO AL PASAR EL MOUSE */
+/*  efecto al pasar el mouse */
 .tarjeta-hacker:hover {
     transform: translateY(-4px);
     border-color: #0dcaf0 !important;
@@ -237,5 +237,5 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
 .tarjeta-hacker:hover {
     transform: translateY(-4px);
     border-color: #0dcaf0 !important;
-    box-shadow: 0 0 16px rgba(13, 202, 240, 0.6);
+    box-shadow: 0 0 20px rgba(13, 202, 240, 0.6);
 }

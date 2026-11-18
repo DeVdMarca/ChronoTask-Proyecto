@@ -28,7 +28,9 @@ formularioTareas.addEventListener("submit", function(evento) {
         titulo: nombre,
         impacto: prioridad,
         fecha: fechaLimite,
-        carpeta: carpetaElegida
+        carpeta: carpetaElegida,
+        estado : "Creada"
+        
 
     };
 
@@ -71,23 +73,36 @@ function pintarTareas(textoFiltro =""){
         } else {
             claseColor = "bg-success text-white";
         }
-        const estructuraTarjeta = `
-        <div class="col">
-            <div class="card bg-secondary bg-opacity-10 text-light border-secondary p-3 tarjeta-hacker">
-                <button onclick="eliminarTareas(${tarea.id})" class="btn-close btn-close-white position-absolute top-0 end-0 m-2 fs-xs" style="font-size: 0.75rem;" aria-label="Eliminar"></button>
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <h6 class="fw-bold m-0 text-white">${tarea.titulo}</h6>
-                    <span class="badge ${claseColor} fs-xs text-uppercase">${tarea.impacto}</span>
-                </div>
-                <p class="small text-warning m-0 fw-semibold">Límite: ${fechaFormateada}</p>
-            </div>
-        </div>
+
+        const estadoActual = tarea.estado|| "Creada";
+        const carpetaActual =tarea.carpeta || "general";
+
+         const estructuraFila = `
+        <tr class="tarjeta-hacker">
+            <td class="fw-bold text-white">${tarea.titulo}</td>
+            <td>
+                <span class="badge bg-secondary bg-opacity-25 text-info border border-info">
+                    <i class="bi bi-folder2 me-1"></i>${carpetaActual}
+                </span>
+            </td>
+            <td>
+                <span class="badge ${claseColor} text-uppercase">${tarea.impacto}</span>
+            </td>
+            <td>
+                <span class="badge bg-dark text-light border border-secondary">${estadoActual}</span>
+            </td>
+            <td class="small text-warning fw-semibold">${fechaFormateada}</td>
+            <td class="text-end">
+                <button onclick="eliminarTareas(${tarea.id})" class="btn btn-sm btn-outline-danger border-0" title="Eliminar tarea">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </td>
+        </tr>
         `;
-        contenedor.innerHTML += estructuraTarjeta;
+        contenedor.innerHTML += estructuraFila;
     })
-
+ 
 }
-
 console.log("¡Formulario detectado! El sensor está funcionando.");
 
 function eliminarTareas(idRecibido) {
@@ -116,7 +131,12 @@ function pintarCarpetas(textoFiltro = ""){
       const contenedorMenu = document.getElementById("listaCarpetas");
       const selectFormulario = document.getElementById("selectCarpetaTarea");
 
-      if(contenedorMenu) contenedorMenu.innerHTML = "";
+      if(contenedorMenu){ contenedorMenu.innerHTML = `
+        <button type="button" onclick="filtrarPorCarpeta('')" class="list-group-item list-group-item-action bg-transparent text-info border-secondary fw-bold">
+            <i class="bi bi-grid-fill me-2"></i> Ver Todas las Tareas
+        </button>
+        `;
+    }
       if(selectFormulario) selectFormulario.innerHTML ="";
 
     const carpetasFiltradas = listaCarpetas.filter(function(carpeta) {
@@ -127,7 +147,7 @@ function pintarCarpetas(textoFiltro = ""){
         if (contenedorMenu) {
             contenedorMenu.innerHTML += `
                 <div class="list-group-item bg-transparent text-light border-secondary d-flex justify-content-between align-items-center">
-                    <span>
+                    <span onclick="filtrarPorCarpeta('${carpeta}')" style="cursor: pointer;" class="flex-grow-1">
                         <i class="bi bi-folder2-open text-info me-2"></i> ${carpeta}
                     </span>
                     <div class="btn-group btn-group-sm">
@@ -229,4 +249,16 @@ if (buscadorGlobal) {
         pintarCarpetas(textoEscrito);
         pintarTareas(textoEscrito);
     });
+}
+
+// filtras las carpetas y asi poder cerrar automaticamente el menu
+
+function filtrarPorCarpeta(nombreCarpeta){
+    pintarCarpetas(nombreCarpeta);
+
+    const panelLateral= document.getElementById("panelPeerfil");
+    if (panelLateral){
+        const instanciaOffcanvas = bootstrap.Offcanvas.getInstance(panelLateral);
+        if(instanciaOffcanvas) instanciaOffcanvas.hide();
+    }
 }
