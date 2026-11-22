@@ -1,4 +1,4 @@
-let listaTareas = JSON.parse(localStorage.getItem("misTareasGuardadas")) || [];
+const taskManager = new TaskManager();
 let listaCarpetas = JSON.parse(localStorage.getItem("misCarpetasGuardadas")) || [];
 
 const formularioTareas = document.querySelector("#taskForm");
@@ -23,26 +23,12 @@ formularioTareas.addEventListener("submit", function(evento) {
         return;
     }
 
-    const nuevaTarea = {
-        id: Date.now(),
-        titulo: nombre,
-        impacto: prioridad,
-        fecha: fechaLimite,
-        carpeta: carpetaElegida,
-        estado : "Creada"
-        
+   taskManager.addTask(nombre, "", fechaLimite, "PORHACER", carpetaElegida,prioridad);
 
-    };
-
-    listaTareas.push(nuevaTarea);
-    localStorage.setItem("misTareasGuardadas", JSON.stringify(listaTareas));
-
-    formularioTareas.reset(); // Limpia el formulario después de enviar la tarea
-    pintarTareas(); // Llama a la función para pintar las tareas en el contenedor
-    actualizarContador(); // Llama a la función para actualizar el contador de tareas
-
-    console.log("Almacen de tareas : " , listaTareas);
-
+   formularioTareas.reset();
+   pintarTareas();
+   actualizarContador();
+      
 });
 
 function pintarTareas(textoFiltro =""){
@@ -53,7 +39,7 @@ function pintarTareas(textoFiltro =""){
     }
     contenedor.innerHTML = ""; // Limpiar el contenedor antes de pintar las tareas
 
-    const tareasFiltradas = listaTareas.filter(function(tarea) {
+    const tareasFiltradas =taskManager.tasks.filter(function(tarea) {
     const coincideTitulo = tarea.titulo.toLowerCase().includes(textoFiltro.toLowerCase());
     const coincideCarpeta = tarea.carpeta && tarea.carpeta.toLowerCase().includes(textoFiltro.toLowerCase());
     return coincideTitulo || coincideCarpeta;
@@ -106,11 +92,10 @@ function pintarTareas(textoFiltro =""){
 console.log("¡Formulario detectado! El sensor está funcionando.");
 
 function eliminarTareas(idRecibido) {
-    listaTareas= listaTareas.filter(function(tarea) {
-        return tarea.id !== idRecibido;
-    });
-
-    localStorage.setItem("misTareasGuardadas", JSON.stringify(listaTareas));
+    taskManager.tasks = taskManager.tasks.filter(function(tarea) {
+    return tarea.id !== idRecibido;
+});
+taskManager.saveToLocalStorage();
 
     pintarTareas();
     actualizarContador();
@@ -123,7 +108,7 @@ actualizarContador(); // Llama a la función para actualizar el contador al carg
 function actualizarContador() {
     const elementoContador = document.getElementById("taskCounter");
     if (elementoContador) {
-        elementoContador.innerHTML = `${listaTareas.length} Nodos Activos`;
+        elementoContador.innerHTML = `${taskManager.tasks.length} Nodos Activos`;
     }
 }
 
