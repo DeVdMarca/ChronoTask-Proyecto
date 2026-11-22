@@ -27,7 +27,8 @@ class TaskManager{
         fecha: dueDate,
         status: status,
         carpeta:  carpeta,
-        impacto: impacto
+        impacto: impacto,
+        checklist: []
         };
 
         this.tasks.push(nuevaTarea);
@@ -37,5 +38,8 @@ class TaskManager{
 
     saveToLocalStorage(){
         localStorage.setItem("misTareasGuardadas", JSON.stringify(this.tasks));
+    }
+    getTaskById(taskId){
+        return this.tasks.find(t=> t.id === taskId);
     }
 }

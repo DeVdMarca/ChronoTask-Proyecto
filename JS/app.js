@@ -40,6 +40,8 @@ function pintarTareas(textoFiltro =""){
     contenedor.innerHTML = ""; // Limpiar el contenedor antes de pintar las tareas
 
     const tareasFiltradas =taskManager.tasks.filter(function(tarea) {
+    
+    
     const coincideTitulo = tarea.titulo.toLowerCase().includes(textoFiltro.toLowerCase());
     const coincideCarpeta = tarea.carpeta && tarea.carpeta.toLowerCase().includes(textoFiltro.toLowerCase());
     return coincideTitulo || coincideCarpeta;
@@ -60,12 +62,19 @@ function pintarTareas(textoFiltro =""){
             claseColor = "bg-success text-white";
         }
 
-        const estadoActual = tarea.estado|| "Creada";
-        const carpetaActual =tarea.carpeta || "general";
+        const estadoActual = tarea.estado|| "PORHACER";
+        const estaCompletada =tarea.carpeta || "COMPLETADA";
+
+        const estiloTitulo = estaCompletada ? "text-decoration-line-through text-secondary" : "text-white";
+        const colorEstado = estaCompletada ? "bg-success text-white" : "bg-dark text-info border border-info";
+        const iconoCheck = estaCompletada ? "bi-check-circle-fill text-success" : "bi-circle text-secondary";
+
+        const carpetaActual = tarea.carpeta || "general";
+
 
          const estructuraFila = `
         <tr class="tarjeta-hacker">
-            <td class="fw-bold text-white">${tarea.titulo}</td>
+            <td class="fw-bold ${estiloTitulo}">${tarea.titulo}</td>
             <td>
                 <span class="badge bg-secondary bg-opacity-25 text-info border border-info">
                     <i class="bi bi-folder2 me-1"></i>${carpetaActual}
@@ -75,10 +84,13 @@ function pintarTareas(textoFiltro =""){
                 <span class="badge ${claseColor} text-uppercase">${tarea.impacto}</span>
             </td>
             <td>
-                <span class="badge bg-dark text-light border border-secondary">${estadoActual}</span>
+                <span class="badge ${colorEstado}">${estadoActual}</span>
             </td>
             <td class="small text-warning fw-semibold">${fechaFormateada}</td>
-            <td class="text-end">
+            <td onclick="abrirModalTarea(${tarea.id})" style="cursor: pointer;" class="fw-bold ${estiloTitulo}" title="Haz clic para ver detalles y checklist">
+                ${tarea.titulo} <i class="bi bi-box-arrow-up-right small text-info ms-1"></i>
+            </td>
+
                 <button onclick="eliminarTareas(${tarea.id})" class="btn btn-sm btn-outline-danger border-0" title="Eliminar tarea">
                     <i class="bi bi-trash"></i>
                 </button>
@@ -100,6 +112,19 @@ taskManager.saveToLocalStorage();
     pintarTareas();
     actualizarContador();
     //console.log("Tarea eliminada. Almacen de tareas actualizado:", listaTareas);
+}
+
+function alternarEstadoTarea (idRecibido){
+    const tarea= taskManager.tasks.find(function(t){
+        return t.id === idRecibido;
+    });
+
+    if (tarea){
+        tarea.status = (tarea.status === "PORHACER") ? "COMPLETADA": "PORHACER";
+
+        taskManager.saveToLocalStorage();
+        pintarTareas();
+    }
 }
 
 pintarTareas(); // Llama a la función para pintar las tareas al cargar la página
@@ -246,4 +271,249 @@ function filtrarPorCarpeta(nombreCarpeta){
         const instanciaOffcanvas = bootstrap.Offcanvas.getInstance(panelLateral);
         if(instanciaOffcanvas) instanciaOffcanvas.hide();
     }
+}
+
+// MODAL DE TAREAS
+
+let tareaActivaId = null;
+
+function abrirModalTarea(idRecibido){
+    const tarea = taskManager.getTaskById(idRecibido);
+    if (!tarea) return;
+
+    tareaActivaId = idRecibido;
+
+    document.getElementById("modalTituloTarea").textContent = tarea.titulo;
+    document.getElementById("modalMetaTarea").textContent = `carpeta: ${tarea.carpeta || "General"}• Prioridad: ${tarea.impacto.toUpperCase()} • limite: ${tarea.fecha.replace("T", "")}`
+    document.getElementById("modalDescripcionInput").value = tarea.description || tarea.descripcion || "";
+
+    evaluarAlertaTiempo(tarea);
+
+    if(!tarea.checklist){
+        tarea.checklist = [];
+
+    }
+
+    pintarChecklistModal(tarea);
+
+    const elementoModal = document.getElementById("modalDetalleTarea");
+    const modalBootstrap = bootstrap.Modal.getOrCreateInstance(elementoModal);
+    modalBootstrap.show();
+
+}
+
+function evaluarAlertaTiempo (tarea){
+    const cajaAlerta = document.getElementById("modalAlertaTiempo");
+    if(!tarea.fecha || tarea.status === "COMPLETADA"){
+        cajaAlerta.className = "alerta d-none";
+        return;
+    }
+
+    const ahora= new Date();
+    const limite = new Date(tarea.fecha);
+    const horaRestantes = (limite - ahora) / (1000 * 60 * 60);
+    
+    if (horaRestantes <= 0 ){
+        cajaAlerta.className =  "alert alert-danger py-2 small fw-semibold";
+        cajaAlerta.innerHTML =  `<i class="bi bi-exclamation-triangle-fill me-1"></i> ¡Atención! Esta tarea ya está vencida.`;
+    } else if (horaRestantes <= 24) {
+        cajaAlerta.className = "alert alert-warning text-dark py-2 small fw-semibold";
+        cajaAlerta.innerHTML = `<i class="bi bi-hourglass-split me-1"></i> ¡Queda poco tiempo! Vence en menos de ${Math.ceil(horaRestantes)} horas.`;
+        
+    } else {
+        cajaAlerta.className = "alert d-none";
+    }
+}
+
+function pintarChecklistModal(tarea) {
+    const listaUl = document.getElementById("modalListaChecklist");
+    listaUl.innerHTML = "";
+
+    if (tarea.checklist.length === 0) {
+        listaUl.innerHTML = `<li class="list-group-item bg-transparent text-secondary small border-0">Aún no hay subtareas. Añade la primera arriba.</li>`;
+        return;
+    }
+
+    tarea.checklist.forEach(function(item, indice) {
+        const estiloTexto = item.hecha ? "text-decoration-line-through text-secondary" : "text-light";
+        const marcado = item.hecha ? "checked" : "";
+
+        listaUl.innerHTML += `
+            <li class="list-group-item bg-black text-light border-secondary d-flex justify-content-between align-items-center">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" ${marcado} onchange="alternarSubtarea(${indice})" id="subtarea-${indice}">
+                    <label class="form-check-label ${estiloTexto}" for="subtarea-${indice}" style="cursor: pointer;">
+                        ${item.texto}
+                    </label>
+                </div>
+                <button onclick="eliminarSubtarea(${indice})" class="btn btn-sm btn-outline-danger border-0 py-0">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </li>
+        `;
+    });
+}
+
+// Evento: Guardar descripción editada
+document.getElementById("btnGuardarDescripcion")?.addEventListener("click", function() {
+    const tarea = taskManager.getTaskById(tareaActivaId);
+    if (!tarea) return;
+
+    const nuevaDesc = document.getElementById("modalDescripcionInput").value.trim();
+    tarea.description = nuevaDesc;
+    tarea.descripcion = nuevaDesc;
+    taskManager.saveToLocalStorage();
+
+    alert("¡Descripción guardada!");
+});
+
+// Evento: Añadir subtarea a la checklist
+document.getElementById("btnAgregarSubtarea")?.addEventListener("click", function() {
+    const tarea = taskManager.getTaskById(tareaActivaId);
+    const inputSub = document.getElementById("modalInputSubtarea");
+    const texto = inputSub.value.trim();
+
+    if (!tarea || texto === "") return;
+
+    tarea.checklist.push({ texto: texto, hecha: false });
+    taskManager.saveToLocalStorage();
+    inputSub.value = "";
+    pintarChecklistModal(tarea);
+});
+
+function alternarSubtarea(indice) {
+    const tarea = taskManager.getTaskById(tareaActivaId);
+    if (!tarea) return;
+
+    tarea.checklist[indice].hecha = !tarea.checklist[indice].hecha;
+    taskManager.saveToLocalStorage();
+    pintarChecklistModal(tarea);
+}
+
+function eliminarSubtarea(indice) {
+    const tarea = taskManager.getTaskById(tareaActivaId);
+    if (!tarea) return;
+
+    tarea.checklist.splice(indice, 1);
+    taskManager.saveToLocalStorage();
+    pintarChecklistModal(tarea);
+}
+
+// ==========================================
+// MÓDULO DE VISTAS RÁPIDAS Y CALENDARIO
+// ==========================================
+let vistaActual = "todas"; // Puede ser: "todas", "importantes", "completadas"
+
+function cambiarVistaFiltro(nuevaVista) {
+    vistaActual = nuevaVista;
+    pintarTareas();
+}
+
+let mesCalendario = new Date().getMonth();
+let anioCalendario = new Date().getFullYear();
+
+function abrirCalendario() {
+    renderizarCalendario();
+    const modalCal = bootstrap.Modal.getOrCreateInstance(document.getElementById("modalCalendario"));
+    modalCal.show();
+}
+
+function cambiarMesCalendario(delta) {
+    mesCalendario += delta;
+
+    // Si retrocedemos antes de Enero (0), pasamos a Diciembre (11) del año anterior
+    if (mesCalendario < 0) {
+        mesCalendario = 11;
+        anioCalendario--;
+    } 
+    // Si avanzamos después de Diciembre (11), pasamos a Enero (0) del año siguiente
+    else if (mesCalendario > 11) {
+        mesCalendario = 0;
+        anioCalendario++;
+    }
+
+    renderizarCalendario();
+}
+
+function cambiarAnioCalendario(nuevoAnio) {
+    const anioNumerico = parseInt(nuevoAnio);
+    if (!isNaN(anioNumerico) && anioNumerico >= 1970 && anioNumerico <= 2100) {
+        anioCalendario = anioNumerico;
+        renderizarCalendario();
+    }
+}
+
+function irAHoyCalendario() {
+    const hoy = new Date();
+    mesCalendario = hoy.getMonth();
+    anioCalendario = hoy.getFullYear();
+    renderizarCalendario();
+}
+
+function renderizarCalendario() {
+    const nombresMeses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+    
+    const tituloMes = document.getElementById("tituloMesCalendario");
+    if (tituloMes) tituloMes.textContent = `${nombresMeses[mesCalendario]} ${anioCalendario}`;
+
+    const inputAnio = document.getElementById("inputAnioCalendario");
+    if (inputAnio) inputAnio.value = anioCalendario;
+
+    const grid = document.getElementById("gridCalendario");
+    if (!grid) return;
+    grid.innerHTML = "";
+
+    const diasSemana = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
+    diasSemana.forEach(d => {
+        grid.innerHTML += `<div class="text-center text-secondary small fw-bold py-1">${d}</div>`;
+    });
+
+    const primerDiaSemana = new Date(anioCalendario, mesCalendario, 1).getDay();
+    const totalDiasMes = new Date(anioCalendario, mesCalendario + 1, 0).getDate();
+
+    for (let i = 0; i < primerDiaSemana; i++) {
+        grid.innerHTML += `<div></div>`;
+    }
+
+    for (let dia = 1; dia <= totalDiasMes; dia++) {
+        const fechaStr = `${anioCalendario}-${String(mesCalendario + 1).padStart(2, "0")}-${String(dia).padStart(2, "0")}`;
+        const tareasDelDia = taskManager.tasks.filter(t => t.fecha && t.fecha.startsWith(fechaStr));
+        const tieneTareas = tareasDelDia.length > 0;
+
+        const claseBoton = tieneTareas 
+            ? "btn-info text-dark fw-bold shadow-sm" 
+            : "btn-outline-secondary text-light";
+
+        grid.innerHTML += `
+            <button type="button" onclick="mostrarTareasDeFecha('${fechaStr}')" class="btn ${claseBoton} py-2 position-relative">
+                ${dia}
+                ${tieneTareas ? `<span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">${tareasDelDia.length}</span>` : ""}
+            </button>
+        `;
+    }
+}
+
+function mostrarTareasDeFecha(fechaStr) {
+    const cajaDetalle = document.getElementById("detalleDiaCalendario");
+    const listaUl = document.getElementById("listaTareasDia");
+    const tituloFecha = document.getElementById("fechaSeleccionadaTexto");
+
+    const tareas = taskManager.tasks.filter(t => t.fecha && t.fecha.startsWith(fechaStr));
+    cajaDetalle.classList.remove("d-none");
+    tituloFecha.textContent = `Tareas programadas para el ${fechaStr}:`;
+    listaUl.innerHTML = "";
+
+    if (tareas.length === 0) {
+        listaUl.innerHTML = `<li class="list-group-item bg-transparent text-secondary small border-0">No hay tareas programadas para este día.</li>`;
+        return;
+    }
+
+    tareas.forEach(t => {
+        listaUl.innerHTML += `
+            <li class="list-group-item bg-dark text-light border-secondary d-flex justify-content-between align-items-center">
+                <span><strong>${t.titulo}</strong> <small class="text-info">(${t.carpeta || "General"})</small></span>
+                <span class="badge ${t.status === 'COMPLETADA' ? 'bg-success' : 'bg-warning text-dark'}">${t.status}</span>
+            </li>
+        `;
+    });
 }
