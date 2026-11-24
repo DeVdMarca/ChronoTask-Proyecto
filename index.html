@@ -41,16 +41,7 @@
                             <i class="bi bi-list-task text-info me-2"></i>Todas las tareas
                         </button>
                     </li>
-                    <li>
-                        <button class="dropdown-item" type="button" onclick="cambiarVistaFiltro('importantes')">
-                            <i class="bi bi-star-fill text-warning me-2"></i>Importantes (Alta)
-                        </button>
-                    </li>
-                    <li>
-                        <button class="dropdown-item" type="button" onclick="cambiarVistaFiltro('completadas')">
-                            <i class="bi bi-check-circle-fill text-success me-2"></i>Completadas
-                        </button>
-                    </li>
+                    
                     <li><hr class="dropdown-divider border-secondary"></li>
                     <li>
                         <button class="dropdown-item" type="button" onclick="abrirCalendario()">
@@ -115,7 +106,65 @@
                     <h5>Núcleo de Tareas</h5>
                         <p class="text-info  small m-0">Progreso de sincronización</p>
                     </section>
-                  
+
+                    <div class="card p-3 mt-4 bloque-mando-tactico text-light">
+                    
+                    <!--  NODOS DE CATEGORÍA  -->
+                    <div class="mb-3 pb-3 border-bottom border-secondary">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="small fw-bold text-info text-uppercase">
+                                <i class="bi bi-diagram-3-fill me-1"></i>Nodos de Carpeta
+                            </span>
+                            <span class="badge bg-black text-info border border-info" id="carpetaActivaBadge">Todas</span>
+                        </div>
+                        <div id="contenedorNodosCarpetas" class="d-flex flex-wrap gap-2">
+                           
+                        </div>
+                    </div>
+
+                    <!--  VISOR DE ALERTAS CRÍTICAS  -->
+                    <div class="mb-3 pb-3 border-bottom border-secondary">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="small fw-bold text-warning text-uppercase">
+                                <i class="bi bi-radar me-1"></i>Radar Crítico (&lt; 24h)
+                            </span>
+                            <span class="badge bg-warning text-dark fw-bold" id="contadorAlertasCriticas">0</span>
+                        </div>
+                        <div id="listaAlertasCriticas" class="d-flex flex-column gap-2" style="max-height: 135px; overflow-y: auto;">
+                            
+                        </div>
+                    </div>
+
+                    <!--  CONSOLA DE COMANDOS POR VOZ Y TEXTO  -->
+                    <div>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="small fw-bold text-info text-uppercase">
+                                <i class="bi bi-terminal-fill me-1"></i>Terminal Jarvis
+                            </span>
+                            <span class="small text-secondary" style="font-size: 0.72rem;">crear / filtrar / enfoque</span>
+                        </div>
+
+                        <div class="terminal-jarvis-box p-2">
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text bg-transparent border-0 text-info fw-bold">&gt;_</span>
+                                <input type="text" id="inputComandoJarvis" class="form-control bg-transparent border-0 text-light shadow-none" 
+                                    placeholder="Ej: crear estudiar sql alta" 
+                                    onkeydown="if(event.key === 'Enter') procesarComandoJarvis()">
+                                <button type="button" id="btnMicrofonoJarvis" class="btn btn-outline-info border-0" onclick="activarVozJarvis()" title="Dictar comando por voz">
+                                    <i class="bi bi-mic-fill"></i>
+                                </button>
+                                <button type="button" class="btn btn-info text-dark fw-bold" onclick="procesarComandoJarvis()" title="Ejecutar comando">
+                                    <i class="bi bi-send-fill"></i>
+                                </button>
+                            </div>
+                            <div id="respuestaJarvis" class="small text-info mt-1 px-1" style="font-size: 0.75rem;">
+                                Sistema en línea. Esperando orden...
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+                                
                 </div>
 
                 <!-- COLUMNA DERECHA -->

@@ -1,6 +1,7 @@
 const taskManager = new TaskManager();
 let listaCarpetas = JSON.parse(localStorage.getItem("misCarpetasGuardadas")) || [];
 let xpTotal = Number(localStorage.getItem("chrono_xp_total")) || 0;
+let carpetaFiltroActual = "TODAS";
 const formularioTareas = document.querySelector("#taskForm");
 
 formularioTareas.addEventListener("submit", function(evento) {
@@ -37,15 +38,28 @@ function pintarTareas(textoFiltro =""){
         console.error("¡Error crítico! No encontré ninguna caja con el id 'taskContainer' en el HTML.");
         return;
     }
+
+       
+    if (typeof actualizarCentroMandoTactico === "function") {
+        actualizarCentroMandoTactico();
+    }
+
+    function actualizarCentroMandoTactico() {
+    renderizarNodosCarpetas();
+    actualizarRadarCritico();
+}
     contenedor.innerHTML = ""; // Limpiar el contenedor antes de pintar las tareas
 
-    const tareasFiltradas =taskManager.tasks.filter(function(tarea) {
-    
-    
-    const coincideTitulo = tarea.titulo.toLowerCase().includes(textoFiltro.toLowerCase());
-    const coincideCarpeta = tarea.carpeta && tarea.carpeta.toLowerCase().includes(textoFiltro.toLowerCase());
-    return coincideTitulo || coincideCarpeta;
-});
+   const tareasFiltradas = taskManager.tasks.filter(function(tarea) {
+        // Filtro por carpeta seleccionada en los Nodos de Categoría
+        const carpetaTarea = (tarea.categoria || tarea.carpeta || "General").toLowerCase();
+        const coincideNodoCarpeta = (carpetaFiltroActual === "TODAS") || (carpetaTarea === carpetaFiltroActual.toLowerCase());
+        if (!coincideNodoCarpeta) return false;
+
+        const coincideTitulo = tarea.titulo.toLowerCase().includes(textoFiltro.toLowerCase());
+        const coincideCarpeta = tarea.carpeta && tarea.carpeta.toLowerCase().includes(textoFiltro.toLowerCase());
+        return coincideTitulo || coincideCarpeta;
+    });
 
     tareasFiltradas.forEach(function(tarea){
 
@@ -813,4 +827,437 @@ function guardarDistraccionRapida() {
     if (typeof actualizarContador === "function") actualizarContador();
 
     hablarAsistente("Distracción guardada en tu lista para más tarde.");
+}
+
+ 
+
+// 1. Nodos de Categoría (Botones táctiles con conteo en vivo)
+function renderizarNodosCarpetas() {
+    const contenedor = document.getElementById("contenedorNodosCarpetas");
+    const badgeActiva = document.getElementById("carpetaActivaBadge");
+    if (!contenedor) return;
+
+    const conteo = {};
+    taskManager.tasks.forEach(tarea => {
+        const nombreCarpeta = (tarea.categoria || tarea.carpeta || "General").trim();
+        conteo[nombreCarpeta] = (conteo[nombreCarpeta] || 0) + 1;
+    });
+
+    const totalTareas = taskManager.tasks.length;
+    const esTodas = carpetaFiltroActual === "TODAS";
+
+    if (badgeActiva) {
+        badgeActiva.textContent = esTodas ? "Todas" : carpetaFiltroActual;
+    }
+
+    // Botón principal "Todas"
+    let htmlBotones = `
+        <button onclick="seleccionarNodoCarpeta('TODAS')" 
+                class="btn btn-sm ${esTodas ? 'btn-info text-dark fw-bold' : 'btn-outline-info'}">
+            Todas <span class="badge bg-dark text-info ms-1">${totalTareas}</span>
+        </button>
+    `;
+
+    // Botones dinámicos por cada carpeta existente
+    Object.keys(conteo).forEach(carpeta => {
+        const activa = carpetaFiltroActual.toLowerCase() === carpeta.toLowerCase();
+        htmlBotones += `
+            <button onclick="seleccionarNodoCarpeta('${carpeta}')" 
+                    class="btn btn-sm ${activa ? 'btn-info text-dark fw-bold' : 'btn-outline-secondary text-light'}">
+                <i class="bi bi-folder2 me-1"></i>${carpeta} 
+                <span class="badge bg-black text-info ms-1">${conteo[carpeta]}</span>
+            </button>
+        `;
+    });
+
+    contenedor.innerHTML = htmlBotones;
+}
+
+function seleccionarNodoCarpeta(nombreCarpeta) {
+    carpetaFiltroActual = nombreCarpeta;
+    pintarTareas();
+}
+
+// 2. Visor de Alertas Críticas (Vencidas o < 24 horas)
+function actualizarRadarCritico() {
+    const lista = document.getElementById("listaAlertasCriticas");
+    const contador = document.getElementById("contadorAlertasCriticas");
+    if (!lista) return;
+
+    const ahora = new Date();
+    const limite24hMs = 24 * 60 * 60 * 1000;
+
+    // Filtrar pendientes con fecha válida dentro de las próximas 24h o vencidas
+    const urgentes = taskManager.tasks.filter(tarea => {
+        if (tarea.status === "COMPLETADA" || !tarea.fecha) return false;
+        const fechaLimite = new Date(tarea.fecha);
+        if (isNaN(fechaLimite.getTime())) return false;
+
+        const diferencia = fechaLimite - ahora;
+        return diferencia <= limite24hMs;
+    });
+
+    if (contador) contador.textContent = urgentes.length;
+
+    if (urgentes.length === 0) {
+        lista.innerHTML = `
+            <div class="p-2 rounded bg-black border border-success border-opacity-50 text-success small">
+                <i class="bi bi-shield-check me-1"></i>Sin amenazas críticas en las próximas 24h.
+            </div>
+        `;
+        return;
+    }
+
+    lista.innerHTML = "";
+    urgentes.forEach(tarea => {
+        const fechaLimite = new Date(tarea.fecha);
+        const diffMs = fechaLimite - ahora;
+        const vencida = diffMs <= 0;
+
+        let textoTiempo = "VENCIDA";
+        if (!vencida) {
+            const horas = Math.floor(diffMs / (1000 * 60 * 60));
+            const minutos = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+            textoTiempo = `En ${horas}h ${minutos}m`;
+        }
+
+        lista.innerHTML += `
+            <div class="d-flex justify-content-between align-items-center p-2 rounded bg-black border ${vencida ? 'border-danger' : 'border-warning'}">
+                <div class="text-truncate me-2">
+                    <div class="small fw-bold text-light text-truncate">${tarea.titulo}</div>
+                    <span class="badge ${vencida ? 'bg-danger' : 'bg-warning text-dark'}" style="font-size: 0.68rem;">
+                        <i class="bi bi-clock-history me-1"></i>${textoTiempo}
+                    </span>
+                </div>
+                <button onclick="abrirModoEnfoque(${tarea.id})" class="btn btn-sm btn-outline-info py-0 px-2" title="Rescatar en Modo Enfoque">
+                    <i class="bi bi-bullseye"></i>
+                </button>
+            </div>
+        `;
+    });
+}
+
+// Refresca el radar automáticamente cada minuto
+setInterval(actualizarRadarCritico, 60000);
+
+function actualizarCentroMandoTactico() {
+    renderizarNodosCarpetas();
+    actualizarRadarCritico();
+}
+
+// ========================================================
+// TERMINAL JARVIS: ASISTENTE CONVERSACIONAL PASO A PASO
+// ========================================================
+let conversacionJarvis = {
+    activa: false,
+    paso: 0, // 1: esperando título, 2: esperando carpeta, 3: esperando prioridad
+    datos: { titulo: "", carpeta: "General", prioridad: "media" },
+    modoVoz: false
+};
+
+function responderTerminalJarvis(mensaje, hablar = true, escucharDespues = false) {
+    const cajaRespuesta = document.getElementById("respuestaJarvis");
+    if (cajaRespuesta) {
+        cajaRespuesta.innerHTML = `<i class="bi bi-cpu me-1"></i>${mensaje}`;
+    }
+
+    if (hablar && "speechSynthesis" in window) {
+        window.speechSynthesis.cancel();
+        if (vocesDisponibles.length === 0) vocesDisponibles = window.speechSynthesis.getVoices();
+
+        const locucion = new SpeechSynthesisUtterance(mensaje);
+        const vozElegida =
+            vocesDisponibles.find(v => v.name.includes("Elvira") && v.lang.includes("es-ES")) ||
+            vocesDisponibles.find(v => v.name.includes("Alvaro") && v.lang.includes("es-ES")) ||
+            vocesDisponibles.find(v => v.name.includes("Google español") && v.lang === "es-ES") ||
+            vocesDisponibles.find(v => v.lang === "es-ES" && v.name.includes("Natural")) ||
+            vocesDisponibles.find(v => v.lang === "ca-ES") ||
+            vocesDisponibles.find(v => v.lang === "es-ES");
+
+        if (vozElegida) {
+            locucion.voice = vozElegida;
+            locucion.lang = vozElegida.lang;
+        } else {
+            locucion.lang = "es-ES";
+        }
+        locucion.rate = 0.94;
+        locucion.pitch = 1.05;
+
+        // Cuando termine de hacer la pregunta, vuelve a encender el micrófono automáticamente
+        locucion.onend = () => {
+            if (escucharDespues && conversacionJarvis.activa) {
+                activarVozJarvis(true);
+            }
+        };
+
+        window.speechSynthesis.speak(locucion);
+    } else if (escucharDespues && conversacionJarvis.activa) {
+        activarVozJarvis(true);
+    }
+}
+
+function cancelarConversacionJarvis() {
+    conversacionJarvis = {
+        activa: false,
+        paso: 0,
+        datos: { titulo: "", carpeta: "General", prioridad: "media" },
+        modoVoz: false
+    };
+}
+
+function procesarComandoJarvis(desdeVoz = false) {
+    const input = document.getElementById("inputComandoJarvis");
+    if (!input) return;
+
+    const textoOriginal = input.value.trim();
+    if (!textoOriginal) return;
+
+    const textoLimpio = textoOriginal.toLowerCase();
+    input.value = "";
+
+    // Opción global para abortar cualquier flujo paso a paso
+    if (textoLimpio === "cancelar" || textoLimpio === "salir") {
+        cancelarConversacionJarvis();
+        responderTerminalJarvis("Operación cancelada. Esperando nueva orden.");
+        return;
+    }
+
+    // ====================================================
+    // FLUJO CONVERSACIONAL PASO A PASO (SI ESTÁ ACTIVO)
+    // ====================================================
+    if (conversacionJarvis.activa) {
+        const seguirConVoz = conversacionJarvis.modoVoz;
+
+        // PASO 1: Recibir el título de la tarea
+        if (conversacionJarvis.paso === 1) {
+            conversacionJarvis.datos.titulo = textoOriginal.charAt(0).toUpperCase() + textoOriginal.slice(1);
+            conversacionJarvis.paso = 2;
+            responderTerminalJarvis(
+                `Título: "${conversacionJarvis.datos.titulo}". ¿En qué carpeta la guardo?`,
+                true,
+                seguirConVoz
+            );
+            return;
+        }
+
+        // PASO 2: Recibir la carpeta
+        if (conversacionJarvis.paso === 2) {
+            conversacionJarvis.datos.carpeta = textoOriginal.charAt(0).toUpperCase() + textoOriginal.slice(1);
+            conversacionJarvis.paso = 3;
+            responderTerminalJarvis(
+                `Carpeta: ${conversacionJarvis.datos.carpeta}. ¿Qué prioridad tiene: alta, media o baja?`,
+                true,
+                seguirConVoz
+            );
+            return;
+        }
+
+        // PASO 3: Recibir la prioridad y guardar definitivamente
+                 // PASO 3: Recibir la prioridad y preguntar la fecha límite
+        if (conversacionJarvis.paso === 3) {
+            let prioridadElegida = null;
+            if (textoLimpio.includes("alta")) prioridadElegida = "alta";
+            else if (textoLimpio.includes("media")) prioridadElegida = "media";
+            else if (textoLimpio.includes("baja")) prioridadElegida = "baja";
+
+            if (!prioridadElegida) {
+                responderTerminalJarvis(
+                    "No identifiqué la prioridad. Por favor dime: alta, media o baja.",
+                    true,
+                    seguirConVoz
+                );
+                return;
+            }
+
+            conversacionJarvis.datos.prioridad = prioridadElegida;
+            conversacionJarvis.paso = 4;
+            responderTerminalJarvis(
+                `Prioridad ${prioridadElegida}. ¿Para cuándo es? Di: hoy, mañana, o en cuántos días.`,
+                true,
+                seguirConVoz
+            );
+            return;
+        }
+
+        // PASO 4: Interpretar fecha natural ("hoy", "mañana", "en X días") y guardar
+        if (conversacionJarvis.paso === 4) {
+            const fechaObjetivo = new Date(); // Toma tu fecha y hora local actual
+
+            if (textoLimpio.includes("pasado mañana")) {
+                fechaObjetivo.setDate(fechaObjetivo.getDate() + 2);
+            } else if (textoLimpio.includes("mañana")) {
+                fechaObjetivo.setDate(fechaObjetivo.getDate() + 1);
+            } else {
+                // Busca si dijiste un número (ej: "en 3 días" o "5 días")
+                const matchDias = textoLimpio.match(/(\d+)/);
+                if (matchDias) {
+                    fechaObjetivo.setDate(fechaObjetivo.getDate() + parseInt(matchDias[1], 10));
+                }
+                // Si dices "hoy" o "ahora", deja fechaObjetivo tal como está
+            }
+
+            // Formatea a YYYY-MM-DDTHH:MM respetando tu zona horaria local
+            const offsetMs = fechaObjetivo.getTimezoneOffset() * 60000;
+            const fechaFormateada = new Date(fechaObjetivo.getTime() - offsetMs).toISOString().slice(0, 16);
+
+            const { titulo, carpeta, prioridad } = conversacionJarvis.datos;
+
+            const nuevaTareaVoz = {
+                id: Date.now(),
+                titulo: titulo,
+                descripcion: "Creada paso a paso con Jarvis",
+                impacto: prioridad,
+                prioridad: prioridad,
+                fecha: fechaFormateada,
+                carpeta: carpeta,
+                categoria: carpeta,
+                status: "PORHACER",
+                checklist: []
+            };
+
+            taskManager.tasks.push(nuevaTareaVoz);
+            taskManager.saveToLocalStorage();
+            pintarTareas();
+            if (typeof actualizarContador === "function") actualizarContador();
+
+            cancelarConversacionJarvis();
+            responderTerminalJarvis(
+                `Listo. Misión "${titulo}" guardada en ${carpeta} con prioridad ${prioridad}.`
+            );
+            return;
+        }
+
+    }
+
+    // ====================================================
+    // COMANDOS INICIALES
+    // ====================================================
+
+    // 1. INICIAR CREACIÓN PASO A PASO ("crear", "crear tarea" o "crear [título]")
+    if (textoLimpio === "crear" || textoLimpio === "crear tarea" || textoLimpio === "nueva tarea") {
+        conversacionJarvis = {
+            activa: true,
+            paso: 1,
+            datos: { titulo: "", carpeta: "General", prioridad: "media" },
+            modoVoz: desdeVoz
+        };
+        responderTerminalJarvis("¿Cuál es el nombre de la tarea?", true, desdeVoz);
+        return;
+    }
+
+    if (textoLimpio.startsWith("crear ")) {
+        const tituloDirecto = textoOriginal.slice(6).trim();
+        conversacionJarvis = {
+            activa: true,
+            paso: 2, // Ya tenemos el título, saltamos directo a preguntar la carpeta
+            datos: {
+                titulo: tituloDirecto.charAt(0).toUpperCase() + tituloDirecto.slice(1),
+                carpeta: "General",
+                prioridad: "media"
+            },
+            modoVoz: desdeVoz
+        };
+        responderTerminalJarvis(
+            `Misión: "${conversacionJarvis.datos.titulo}". ¿En qué carpeta la guardo?`,
+            true,
+            desdeVoz
+        );
+        return;
+    }
+
+    // 2. FILTRAR CARPETA
+    if (textoLimpio.startsWith("filtrar ")) {
+        const carpetaBuscada = textoOriginal.slice(8).trim();
+        if (!carpetaBuscada) return;
+
+        if (carpetaBuscada.toLowerCase() === "todas" || carpetaBuscada.toLowerCase() === "todo") {
+            seleccionarNodoCarpeta("TODAS");
+            responderTerminalJarvis("Mostrando todas las misiones.");
+        } else {
+            const nombreFormateado = carpetaBuscada.charAt(0).toUpperCase() + carpetaBuscada.slice(1);
+            seleccionarNodoCarpeta(nombreFormateado);
+            responderTerminalJarvis(`Filtrando carpeta: ${nombreFormateado}.`);
+        }
+        return;
+    }
+
+    // 3. MODO ENFOQUE AUTOMÁTICO
+    if (textoLimpio.includes("enfoque")) {
+        const pendientes = taskManager.tasks.filter(t => t.status !== "COMPLETADA");
+        if (pendientes.length === 0) {
+            responderTerminalJarvis("No tienes misiones pendientes para enfocar.");
+            return;
+        }
+        const tareaPrioritaria = pendientes.find(t => (t.impacto || "").toLowerCase() === "alta") || pendientes[0];
+        responderTerminalJarvis(`Abriendo modo enfoque en: ${tareaPrioritaria.titulo}.`, false);
+        abrirModoEnfoque(tareaPrioritaria.id);
+        return;
+    }
+
+    // 4. COMPLETAR TAREA
+    if (textoLimpio.startsWith("completar ")) {
+        const busqueda = textoLimpio.slice(10).trim();
+        const encontrada = taskManager.tasks.find(t =>
+            t.status !== "COMPLETADA" && t.titulo.toLowerCase().includes(busqueda)
+        );
+        if (encontrada) {
+            alternarEstadoTarea(encontrada.id);
+            responderTerminalJarvis(`Misión "${encontrada.titulo}" completada. Puntos XP sumados.`);
+        } else {
+            responderTerminalJarvis(`No encontré ninguna misión pendiente llamada "${busqueda}".`);
+        }
+        return;
+    }
+
+    responderTerminalJarvis(`Di "crear tarea", "filtrar [carpeta]", "completar [tarea]" o "enfoque".`);
+}
+
+// Reconocimiento de Voz por Micrófono
+function activarVozJarvis(continuacionAutomatica = false) {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+        responderTerminalJarvis("Tu navegador no soporta reconocimiento de voz. Usa Chrome o Edge.", false);
+        return;
+    }
+
+    const btnMic = document.getElementById("btnMicrofonoJarvis");
+    const input = document.getElementById("inputComandoJarvis");
+    const reconocimiento = new SpeechRecognition();
+
+    reconocimiento.lang = "es-CO";
+    reconocimiento.interimResults = false;
+    reconocimiento.maxAlternatives = 1;
+
+    reconocimiento.onstart = () => {
+        if (btnMic) {
+            btnMic.classList.remove("btn-outline-info");
+            btnMic.classList.add("btn-danger");
+        }
+        if (!continuacionAutomatica) {
+            responderTerminalJarvis("Escuchando... Di 'crear tarea' para iniciar.", false);
+        }
+    };
+
+    reconocimiento.onresult = (evento) => {
+        const transcripcion = evento.results[0][0].transcript.replace(/\.$/, "").trim();
+        if (input) input.value = transcripcion;
+        procesarComandoJarvis(true); // Indica que viene de voz para encadenar preguntas
+    };
+
+        reconocimiento.onerror = (evento) => {
+        if (evento.error === "no-speech" && conversacionJarvis.activa) {
+            responderTerminalJarvis("No te escuché. Pulsa el micrófono para responder o di cancelar.", false);
+        } else {
+            responderTerminalJarvis(`Error de micrófono: ${evento.error}.`, false);
+        }
+    };
+
+    reconocimiento.onend = () => {
+        if (btnMic) {
+            btnMic.classList.remove("btn-danger");
+            btnMic.classList.add("btn-outline-info");
+        }
+    };
+
+    reconocimiento.start();
 }
