@@ -454,9 +454,95 @@
                 </div>
             </div>
         </div>
+        <!-- MODAL DE MODO ENFOQUE + ASISTENTE DE VOZ + CAPTURA RÁPIDA -->
+        <div class="modal fade" id="modalModoEnfoque" data-bs-backdrop="static" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-lg">
+                <div class="modal-content bg-dark text-light border border-info shadow-lg">
+                    
+                    <!-- Cabecera -->
+                    <div class="modal-header border-secondary d-flex justify-content-between align-items-center">
+                        <h5 class="modal-title fw-bold text-info mb-0">
+                            <i class="bi bi-bullseye me-2"></i>PROTOCOLO DE ENFOQUE NEURAL
+                        </h5>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge bg-black text-info border border-info" id="estadoVozEnfoque">
+                                <i class="bi bi-volume-up-fill me-1"></i>Voz Activa
+                            </span>
+                            <button type="button" class="btn-close btn-close-white" onclick="cerrarModoEnfoque()" aria-label="Cerrar"></button>
+                        </div>
+                    </div>
+
+                    <div class="modal-body p-4">
+                        <!-- 1. Tarea Activa Aislada -->
+                        <div class="p-3 mb-4 rounded bg-black border border-warning">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="small text-warning text-uppercase fw-bold">Misión Activa</span>
+                                <span class="badge bg-warning text-dark" id="enfoquePrioridadBadge">ALTA</span>
+                            </div>
+                            <h4 class="fw-bold text-white mb-0" id="enfoqueTituloTarea">Nombre de la tarea</h4>
+                        </div>
+
+                        <!-- 2. Reloj Editable (25, 45 o 60 min) -->
+                        <div class="text-center p-4 mb-4 rounded bg-black border border-info">
+                            <div class="btn-group btn-group-sm mb-3" role="group" aria-label="Duración del bloque">
+                                <button type="button" class="btn btn-outline-info" onclick="configurarTiempoEnfoque(25)">25 min</button>
+                                <button type="button" class="btn btn-outline-info" onclick="configurarTiempoEnfoque(45)">45 min</button>
+                                <button type="button" class="btn btn-outline-info" onclick="configurarTiempoEnfoque(60)">60 min</button>
+                            </div>
+
+                            <div class="display-2 fw-bold text-info my-2" id="relojEnfoqueDisplay" style="font-family: monospace; letter-spacing: 3px;">
+                                25:00
+                            </div>
+
+                            <div class="d-flex justify-content-center gap-2 mt-3">
+                                <button type="button" class="btn btn-info text-dark fw-bold px-4" id="btnIniciarEnfoque" onclick="iniciarTemporizadorEnfoque()">
+                                    <i class="bi bi-play-fill me-1"></i>Iniciar Enfoque
+                                </button>
+                                <button type="button" class="btn btn-outline-warning px-3" onclick="pausarTemporizadorEnfoque()">
+                                    <i class="bi bi-pause-fill me-1"></i>Pausar
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary px-3" onclick="reiniciarTemporizadorEnfoque()">
+                                    <i class="bi bi-arrow-counterclockwise"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- 3. Subtareas de la Misión Activa -->
+                        <div class="mb-4">
+                            <h6 class="text-info fw-bold mb-2">
+                                <i class="bi bi-check2-square me-1"></i>Subtareas de esta misión:
+                            </h6>
+                            <ul id="enfoqueListaChecklist" class="list-group list-group-flush rounded border border-secondary"></ul>
+                        </div>
+
+                        <!-- 4. Captura Rápida de Distracciones (3 segundos) -->
+                        <div class="p-3 rounded bg-black border border-secondary">
+                            <label class="form-label small text-warning fw-bold mb-2">
+                                <i class="bi bi-lightning-charge-fill me-1"></i>Captura Rápida de Distracciones (se guarda en TaskManager sin salir):
+                            </label>
+                            <div class="input-group">
+                                <input type="text" id="inputCapturaRapida" class="form-control input-neon" placeholder="Ej: Revisar correo o buscar documentación luego...">
+                                <button type="button" class="btn btn-outline-warning fw-bold" onclick="guardarDistraccionRapida()">
+                                    <i class="bi bi-plus-lg me-1"></i>Guardar luego
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Pie del Modal: Completar misión directo desde el enfoque -->
+                    <div class="modal-footer border-secondary d-flex justify-content-between">
+                        <button type="button" class="btn btn-outline-secondary" onclick="cerrarModoEnfoque()">Salir del enfoque</button>
+                        <button type="button" class="btn btn-success fw-bold" onclick="completarTareaDesdeEnfoque()">
+                            <i class="bi bi-trophy-fill me-1"></i>¡Misión Completada! (+XP)
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+        </div>
         <script src="./JS/taskManager.js"></script>
         <script src="./JS/app.js"></script>
-      <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.9/dist/js/bootstrap.min.js" integrity="sha384-89aa4glufciPv46aKltztWQEmk+Tu9W2RhzXr6VcnUUEub7F8+06RcL2RYLCOHUq" crossorigin="anonymous"></script>                           
+        <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.9/dist/js/bootstrap.min.js" integrity="sha384-89aa4glufciPv46aKltztWQEmk+Tu9W2RhzXr6VcnUUEub7F8+06RcL2RYLCOHUq" crossorigin="anonymous"></script>                           
     </body>
 </html>

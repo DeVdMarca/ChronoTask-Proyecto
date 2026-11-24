@@ -88,15 +88,20 @@ function pintarTareas(textoFiltro =""){
             </td>
            <td class="small text-warning fw-semibold">${fechaFormateada}</td>
 
-            <!-- 6. Acciones (Botón Detalles/Descripción + Botón Completar + Botón Eliminar) -->
+            <!-- 6. Acciones (Enfoque + Detalles + Completar + Eliminar) -->
             <td class="text-end text-nowrap">
+                <button onclick="abrirModoEnfoque(${tarea.id})" 
+                        class="btn btn-sm btn-outline-info me-1" 
+                        title="Iniciar Modo Enfoque con Voz">
+                    <i class="bi bi-bullseye"></i> Enfoque
+                </button>
                 <button onclick="abrirModalTarea(${tarea.id})" 
                         class="btn btn-sm btn-outline-warning me-1" 
                         title="Abrir descripción y checklist">
                     <i class="bi bi-card-text"></i>
                 </button>
                 <button onclick="alternarEstadoTarea(${tarea.id})" 
-                        class="btn btn-sm ${estaCompletada ? 'btn-success' : 'btn-outline-info'} me-1" 
+                        class="btn btn-sm ${estaCompletada ? 'btn-success' : 'btn-outline-success'} me-1" 
                         title="${estaCompletada ? 'Reactivar tarea' : 'Completar tarea'}">
                     <i class="bi ${estaCompletada ? 'bi-check-circle-fill' : 'bi-check2'}"></i>
                     ${estaCompletada ? 'Lista' : 'Completar'}
@@ -582,4 +587,230 @@ function actualizarBarraSincronizacion() {
         barra.setAttribute("aria-valuenow", progresoNivel);
         barra.textContent = `${progresoNivel}%`;
     }
+}
+
+// ========================================================
+// MÓDULO DE ENFOQUE NEURAL + ASISTENTE DE VOZ + CAPTURA RÁPIDA
+// ========================================================
+let tareaEnfoqueId = null;
+let intervaloEnfoque = null;
+let segundosTotalesBloque = 25 * 60;
+let segundosRestantesEnfoque = 25 * 60;
+let avisoMitadEnviado = false;
+
+let vocesDisponibles = [];
+
+function cargarVocesSuaves() {
+    if (!("speechSynthesis" in window)) return;
+    vocesDisponibles = window.speechSynthesis.getVoices();
+}
+
+// Los navegadores cargan las voces de forma asíncrona
+if ("speechSynthesis" in window) {
+    cargarVocesSuaves();
+    window.speechSynthesis.onvoiceschanged = cargarVocesSuaves;
+}
+
+function hablarAsistente(mensaje) {
+    if (!("speechSynthesis" in window)) return;
+    window.speechSynthesis.cancel();
+
+    if (vocesDisponibles.length === 0) {
+        vocesDisponibles = window.speechSynthesis.getVoices();
+    }
+
+    const locucion = new SpeechSynthesisUtterance(mensaje);
+
+    // Orden de prioridad: voces naturales de España (es-ES) o Catalán (ca-ES)
+    const vozElegida =
+        vocesDisponibles.find(v => v.name.includes("Elvira") && v.lang.includes("es-ES")) ||
+        vocesDisponibles.find(v => v.name.includes("Alvaro") && v.lang.includes("es-ES")) ||
+        vocesDisponibles.find(v => v.name.includes("Google español") && v.lang === "es-ES") ||
+        vocesDisponibles.find(v => v.lang === "es-ES" && v.name.includes("Natural")) ||
+        vocesDisponibles.find(v => v.lang === "ca-ES") ||
+        vocesDisponibles.find(v => v.lang === "es-ES");
+
+    if (vozElegida) {
+        locucion.voice = vozElegida;
+        locucion.lang = vozElegida.lang;
+    } else {
+        locucion.lang = "es-ES";
+    }
+
+    // Ajuste suave: un poco más pausada y con entonación cálida
+    locucion.rate = 0.94;
+    locucion.pitch = 1.05;
+    locucion.volume = 0.95;
+
+    window.speechSynthesis.speak(locucion);
+}
+
+// 2. Abrir el Modal aislando la tarea elegida
+function abrirModoEnfoque(idRecibido) {
+    const tarea = taskManager.tasks.find(t => Number(t.id) === Number(idRecibido));
+    if (!tarea) return;
+
+    tareaEnfoqueId = Number(idRecibido);
+    pausarTemporizadorEnfoque();
+    configurarTiempoEnfoque(25);
+
+    // Pintar datos de la misión
+    document.getElementById("enfoqueTituloTarea").textContent = tarea.titulo;
+    document.getElementById("enfoquePrioridadBadge").textContent = (tarea.impacto || "Media").toUpperCase();
+
+    // Pintar checklist interna dentro del modo enfoque
+    pintarChecklistEnfoque(tarea);
+
+    const modalEnf = bootstrap.Modal.getOrCreateInstance(document.getElementById("modalModoEnfoque"));
+    modalEnf.show();
+}
+
+function pintarChecklistEnfoque(tarea) {
+    const listaUl = document.getElementById("enfoqueListaChecklist");
+    listaUl.innerHTML = "";
+
+    if (!tarea.checklist || tarea.checklist.length === 0) {
+        listaUl.innerHTML = `<li class="list-group-item bg-black text-secondary small border-0">Esta misión no tiene subtareas. Concéntrate en el objetivo principal.</li>`;
+        return;
+    }
+
+    tarea.checklist.forEach((item, indice) => {
+        const estilo = item.hecha ? "text-decoration-line-through text-secondary" : "text-light";
+        const marcado = item.hecha ? "checked" : "";
+
+        listaUl.innerHTML += `
+            <li class="list-group-item bg-black text-light border-secondary d-flex align-items-center">
+                <input class="form-check-input me-2" type="checkbox" ${marcado} onchange="alternarSubtareaDesdeEnfoque(${indice})" id="enf-sub-${indice}">
+                <label class="form-check-label ${estilo}" for="enf-sub-${indice}" style="cursor: pointer;">
+                    ${item.texto}
+                </label>
+            </li>
+        `;
+    });
+}
+
+function alternarSubtareaDesdeEnfoque(indice) {
+    const tarea = taskManager.tasks.find(t => Number(t.id) === tareaEnfoqueId);
+    if (!tarea || !tarea.checklist[indice]) return;
+
+    tarea.checklist[indice].hecha = !tarea.checklist[indice].hecha;
+    taskManager.saveToLocalStorage();
+    pintarChecklistEnfoque(tarea);
+}
+
+// 3. Control del Reloj Editable (25, 45, 60 min)
+function configurarTiempoEnfoque(minutos) {
+    pausarTemporizadorEnfoque();
+    segundosTotalesBloque = minutos * 60;
+    segundosRestantesEnfoque = segundosTotalesBloque;
+    avisoMitadEnviado = false;
+    actualizarDisplayRelojEnfoque();
+}
+
+function actualizarDisplayRelojEnfoque() {
+    const mins = Math.floor(segundosRestantesEnfoque / 60);
+    const segs = segundosRestantesEnfoque % 60;
+    const formato = `${String(mins).padStart(2, "0")}:${String(segs).padStart(2, "0")}`;
+    const display = document.getElementById("relojEnfoqueDisplay");
+    if (display) display.textContent = formato;
+}
+
+function iniciarTemporizadorEnfoque() {
+    if (intervaloEnfoque) return; // Evita doble temporizador si ya está corriendo
+
+    const tarea = taskManager.tasks.find(t => Number(t.id) === tareaEnfoqueId);
+    if (!tarea) return;
+
+    // Buscar primera subtarea pendiente para que el asistente la lea
+    const primeraPendiente = tarea.checklist?.find(sub => !sub.hecha);
+    const minutosElegidos = Math.round(segundosRestantesEnfoque / 60);
+
+    let mensajeInicio = `Iniciando bloque de enfoque de ${minutosElegidos} minutos para la misión: ${tarea.titulo}.`;
+    if (primeraPendiente) {
+        mensajeInicio += ` Tu primera subtarea pendiente es: ${primeraPendiente.texto}.`;
+    }
+    hablarAsistente(mensajeInicio);
+
+    intervaloEnfoque = setInterval(() => {
+        segundosRestantesEnfoque--;
+        actualizarDisplayRelojEnfoque();
+
+        // Aviso suave justo a mitad del bloque
+        const mitad = Math.floor(segundosTotalesBloque / 2);
+        if (!avisoMitadEnviado && segundosRestantesEnfoque === mitad && mitad > 30) {
+            avisoMitadEnviado = true;
+            hablarAsistente("Vas por la mitad del bloque de enfoque. Mantén el ritmo.");
+        }
+
+        // Al llegar a 00:00
+        if (segundosRestantesEnfoque <= 0) {
+            pausarTemporizadorEnfoque();
+            hablarAsistente("Tiempo completado. Es momento de un descanso.");
+
+            setTimeout(() => {
+                const deseaCompletar = confirm(`¡Bloque finalizado para "${tarea.titulo}"!\n\n• Presiona ACEPTAR para marcar la tarea como COMPLETADA (+XP).\n• Presiona CANCELAR para sumar 15 minutos extra de enfoque.`);
+                if (deseaCompletar) {
+                    completarTareaDesdeEnfoque();
+                } else {
+                    configurarTiempoEnfoque(15);
+                    iniciarTemporizadorEnfoque();
+                }
+            }, 400);
+        }
+    }, 1000);
+}
+
+function pausarTemporizadorEnfoque() {
+    if (intervaloEnfoque) {
+        clearInterval(intervaloEnfoque);
+        intervaloEnfoque = null;
+    }
+}
+
+function reiniciarTemporizadorEnfoque() {
+    pausarTemporizadorEnfoque();
+    segundosRestantesEnfoque = segundosTotalesBloque;
+    avisoMitadEnviado = false;
+    actualizarDisplayRelojEnfoque();
+}
+
+function cerrarModoEnfoque() {
+    pausarTemporizadorEnfoque();
+    window.speechSynthesis?.cancel();
+    const modalEl = document.getElementById("modalModoEnfoque");
+    bootstrap.Modal.getInstance(modalEl)?.hide();
+}
+
+// 4. Completar la misión directo desde el Modo Enfoque
+function completarTareaDesdeEnfoque() {
+    const tarea = taskManager.tasks.find(t => Number(t.id) === tareaEnfoqueId);
+    if (tarea && tarea.status !== "COMPLETADA") {
+        alternarEstadoTarea(tarea.id);
+        hablarAsistente(`Misión ${tarea.titulo} completada. Experiencia sincronizada en el núcleo.`);
+    }
+    cerrarModoEnfoque();
+}
+
+// 5. Captura Rápida de Distracciones (3 segundos)
+function guardarDistraccionRapida() {
+    const input = document.getElementById("inputCapturaRapida");
+    const texto = input.value.trim();
+    if (!texto) return;
+
+    // Fecha de hoy en formato compatible con tu tabla
+    const hoyStr = new Date().toISOString().slice(0, 16);
+
+    taskManager.addTask(
+        texto,
+        "Capturada rápidamente durante sesión de enfoque",
+        hoyStr,
+        "General",
+        "baja"
+    );
+
+    input.value = "";
+    pintarTareas();
+    if (typeof actualizarContador === "function") actualizarContador();
+
+    hablarAsistente("Distracción guardada en tu lista para más tarde.");
 }
