@@ -15,7 +15,7 @@
     </head>
     <body>
      <!-- NAVBAR SUPERIOR -->
-        <header class="navbar navbar-expand-lg navbar-dark bg-dark px-4 border-bottom border-secondary">
+        <header class="navbar navbar-expand-lg navbar-dark bg-dark px-4 border-bottom border-secondary navbar-metal-neon">
         <div class="navbar-brand d-flex align-items-center mb-0">
             <img src="logo1.png" alt="logo" style="width: 50px; height: 50px;" class="me-2">
             <span>Chrono Task</span>
@@ -26,7 +26,7 @@
             <span class="input-group-text bg-dark text-info border-secondary">
                 <i class="bi bi-search"></i>
             </span>
-            <input type="text" id="buscadorGlobal" class="form-control bg-dark text-light border-secondary" placeholder="Buscar tarea o carpeta...">
+            <input type="text" id="buscadorGlobal" class="form-control bg-dark text-light border-secondary input-neon" placeholder="Buscar tarea o carpeta...">
         </div>
 
         <!-- Grupo de botones a la derecha -->
@@ -68,13 +68,13 @@
 
         <!-- CUERPO PRINCIPAL -->
         <main class="container-fluid py-4 text-light">
-            <div class="row g-4">
+            <div class="row g-4 mb-4">
                 
                 <!-- COLUMNA IZQUIERDA: CONTROL (Ocupa 4 de 12 espacios) -->
-                <div class="col-md-4 d-flex flex-column gap-4"> 
+                <div class="col-md-4 d-flex flex-column gap-4 g-4"> 
                     
                    
-                    <section class="p-4 border border-secondary rounded bg-dark text-center position-relative overflow-hidden">
+                    <section class="p-4 border border-secondary rounded bg-dark text-center position-relative overflow-hidden bloque-nucleo-naranja-cian">
                         <div class="d-flex justify-content-between align-items-center mb-3">
                            
                             <span class="badge bg-dark text-info border border-info small" id="coreState">STANDBY</span>
@@ -90,30 +90,45 @@
                                 <i class="bi bi-cpu fs-2 text-info text-opacity-75"></i>
                             </div>
                         </div>
-                        
-                        <div class="mt-3 border-top border-secondary pt-2 mb-3">
-                            <div class="d-flex justify-content-between small">
-                                <span class="text-muted">Sincronización:</span>
-                                <span class="text-info fw-bold id-percentage" id="syncPercentage">0%</span>
+                                                
+                        <div class="mt-3 pt-3 border-top border-secondary">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="badge bg-warning text-dark fw-bold" id="rangoNucleo">
+                                <i class="bi bi-cpu-fill me-1"></i>Rango: Novato del Código
+                            </span>
+                            <span class="small fw-bold text-info" id="textoNivelXp">
+                                Nivel 1 • 0 / 100 XP
+                            </span>
+                        </div>
+
+                        <!-- Barra de Sincronización -->
+                        <div class="progress bg-black border border-warning" style="height: 14px; border-radius: 8px;">
+                            <div id="barraSincronizacion" 
+                                class="progress-bar progress-bar-striped progress-bar-animated bg-warning text-dark fw-bold" 
+                                role="progressbar" 
+                                style="width: 0%; font-size: 0.7rem;" 
+                                aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+                                0%
                             </div>
                         </div>
-                        <h5>Núcleo de Tareas</h5>
-                        <p class="text-primary small m-0">Progreso de sincronización</p>
+                    </div>
+                    <h5>Núcleo de Tareas</h5>
+                        <p class="text-info  small m-0">Progreso de sincronización</p>
                     </section>
                   
                 </div>
 
                 <!-- COLUMNA DERECHA -->
                 <div class="col-md-8">
-                    <section class="p-4 border border-secondary rounded bg-dark mn-4">
+                    <section class="p-4 border border-secondary rounded bg-dark mb-4 bloque-formulario-violeta">
                         <form id="taskForm">
                             <div class="mb-3">
                                 <label class="form-label small text-light">Nombre de la Actividad</label>
-                                <input type="text" class="form-control" placeholder="Escribe nombre de la actividad">
+                                <input  type="text" class="form-control input-neon" placeholder="Escribe nombre de la actividad">
                             </div>
                             <div class="mb-3">
                                 <label class="form-label small text-light">Nivel de Impacto (Prioridad)</label>
-                                <select class="form-select">
+                                <select class="form-select input-neon">
                                     <option value="baja">Baja</option>
                                     <option value="media">Media</option>
                                     <option value="alta">Alta</option>
@@ -121,19 +136,19 @@
                             </div>
                             <div class="mb-3">
                                 <label class="form-label small text-light" > Carpeta/Categoria</label>
-                                <select name="form-select" class="form-select bg-dark text-light border-secondary" id="selectCarpetaTarea"></select>
+                                <select name="form-select input-neon" class="form-select bg-dark text-light border-secondary" id="selectCarpetaTarea"></select>
 
                             </div>
                             <div class="mb-3">
                                 <label class="form-label small text-light">Fecha y Hora Límite</label>
-                                <input type="datetime-local" class="form-control">
+                                <input type="datetime-local" class="form-control input-neon">
                             </div>
                             <button type="submit" class="btn btn-warning btn-lg w-100 fw-bold">
                                 <i class="bi bi-lightning-charge-fill"></i> Agregar Tarea
                             </button>
                         </form>
                     </section>
-                    <section class="p-3 border border-secondary rounded bg-dark h-100">
+                    <section class="p-3 border border-secondary rounded bg-dark h-100 bloque-cian-titanio">
                         <div class="d-flex justify-content-between align-items-center mb-4">
                             <h5 class="text-info m-0">Matriz de Tareas</h5>
                             <span class="badge bg-outline-info text-info border border-info small" id="taskCounter">1 Nodo Activo</span>
@@ -393,52 +408,52 @@
                 </div>
             </div>
             <div class="modal fade" id="modalCalendario" tabindex="-1" aria-hidden="true">
-                <div class="modal-dialog modal-dialog-centered modal-lg">
-                    <div class="modal-content bg-dark text-light border border-info shadow-lg">
-                        
-                        <div class="modal-header border-secondary d-flex flex-wrap justify-content-between align-items-center gap-2">
-                            <h5 class="modal-title fw-bold text-info mb-0">
-                                <i class="bi bi-calendar3 me-2"></i><span id="tituloMesCalendario">Calendario</span>
-                            </h5>
+            <div class="modal-dialog modal-dialog-centered modal-lg">
+                <div class="modal-content bg-dark text-light border border-info shadow-lg">
+                    
+                    <div class="modal-header border-secondary d-flex flex-wrap justify-content-between align-items-center gap-2">
+                        <h5 class="modal-title fw-bold text-info mb-0">
+                            <i class="bi bi-calendar3 me-2"></i><span id="tituloMesCalendario">Calendario</span>
+                        </h5>
 
-                            <!-- Controles para cambiar mes y año -->
-                            <div class="d-flex align-items-center gap-2">
-                                <button type="button" class="btn btn-sm btn-outline-info" onclick="cambiarMesCalendario(-1)" title="Mes anterior">
-                                    <i class="bi bi-chevron-left"></i>
-                                </button>
+                        <!-- Controles para cambiar mes y año -->
+                        <div class="d-flex align-items-center gap-2">
+                            <button type="button" class="btn btn-sm btn-outline-info" onclick="cambiarMesCalendario(-1)" title="Mes anterior">
+                                <i class="bi bi-chevron-left"></i>
+                            </button>
 
-                                <input type="number" id="inputAnioCalendario" class="form-control form-control-sm bg-black text-info border-info text-center fw-bold" style="width: 85px;" onchange="cambiarAnioCalendario(this.value)" title="Cambiar año">
+                            <input type="number" id="inputAnioCalendario" class="form-control form-control-sm bg-black text-info border-info text-center fw-bold" style="width: 85px;" onchange="cambiarAnioCalendario(this.value)" title="Cambiar año">
 
-                                <button type="button" class="btn btn-sm btn-outline-info" onclick="cambiarMesCalendario(1)" title="Mes siguiente">
-                                    <i class="bi bi-chevron-right"></i>
-                                </button>
+                            <button type="button" class="btn btn-sm btn-outline-info" onclick="cambiarMesCalendario(1)" title="Mes siguiente">
+                                <i class="bi bi-chevron-right"></i>
+                            </button>
 
-                                <button type="button" class="btn btn-sm btn-info text-dark fw-bold" onclick="irAHoyCalendario()">
-                                    Hoy
-                                </button>
+                            <button type="button" class="btn btn-sm btn-info text-dark fw-bold" onclick="irAHoyCalendario()">
+                                Hoy
+                            </button>
 
-                                <button type="button" class="btn-close btn-close-white ms-2" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-                            </div>
+                            <button type="button" class="btn-close btn-close-white ms-2" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                         </div>
-
-                        <div class="modal-body">
-                            <p class="small text-secondary mb-3">
-                                Los días resaltados en <span class="badge bg-info text-dark">azul neón</span> tienen tareas programadas. Haz clic en un día para ver cuáles son.
-                            </p>
-                            
-                            <!-- Cuadrícula de días del mes -->
-                            <div id="gridCalendario" class="d-grid gap-2" style="grid-template-columns: repeat(7, 1fr);"></div>
-
-                            <!-- Lista de tareas del día seleccionado -->
-                            <div id="detalleDiaCalendario" class="mt-4 p-3 rounded bg-black border border-secondary d-none">
-                                <h6 class="text-info fw-bold mb-2" id="fechaSeleccionadaTexto">Tareas del día:</h6>
-                                <ul id="listaTareasDia" class="list-group list-group-flush"></ul>
-                            </div>
-                        </div>
-
                     </div>
+
+                    <div class="modal-body">
+                        <p class="small text-secondary mb-3">
+                            Los días resaltados en <span class="badge bg-info text-dark">azul neón</span> tienen tareas programadas. Haz clic en un día para ver cuáles son.
+                        </p>
+                        
+                        <!-- Cuadrícula de días del mes -->
+                        <div id="gridCalendario" class="d-grid gap-2" style="grid-template-columns: repeat(7, 1fr);"></div>
+
+                        <!-- Lista de tareas del día seleccionado -->
+                        <div id="detalleDiaCalendario" class="mt-4 p-3 rounded bg-black border border-secondary d-none">
+                            <h6 class="text-info fw-bold mb-2" id="fechaSeleccionadaTexto">Tareas del día:</h6>
+                            <ul id="listaTareasDia" class="list-group list-group-flush"></ul>
+                        </div>
+                    </div>
+
                 </div>
             </div>
+        </div>
         <script src="./JS/taskManager.js"></script>
         <script src="./JS/app.js"></script>
       <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script>

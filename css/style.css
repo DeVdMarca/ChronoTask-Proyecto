@@ -8,6 +8,34 @@
     letter-spacing: 0.5px;
 }
 
+.navbar-metal-neon {
+    position: relative;
+    background: linear-gradient(180deg, #161b26 0%, #090c12 60%, #05070a 100%) !important;
+    border-bottom: none !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+    z-index: 10;
+}
+
+/* Línea inferior multicolor en movimiento (Cian -> Violeta -> Naranja -> Cian) */
+.navbar-metal-neon::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    height: 2.5px;
+    background: linear-gradient(90deg, #00e5ff, #a855f7, #f97316, #00e5ff);
+    background-size: 300% 100%;
+    animation: luzMulticolor 5s linear infinite;
+    box-shadow: 0 0 12px rgba(0, 229, 255, 0.6), 0 0 18px rgba(168, 85, 247, 0.45);
+}
+
+@keyframes luzMulticolor {
+    0% { background-position: 0% 50%; }
+    100% { background-position: 300% 50%; }
+}
+
+
 /* personalizacion del modal */
 .modal-content {
     background-color: #0b0f19 !important; 
@@ -238,4 +266,87 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
     transform: translateY(-4px);
     border-color: #0dcaf0 !important;
     box-shadow: 0 0 20px rgba(13, 202, 240, 0.6);
+}
+
+body {
+    background-color: #070b14 !important;
+    color: #e2e8f0;
+}
+
+/*Los  Inputs y Selects oscuros uniformes (incluye la Carpeta/Categoría) */
+.input-neon,
+select.form-select {
+    background-color: #0b111e !important;
+    color: #f8fafc !important;
+    border: 1.5px solid rgba(0, 229, 255, 0.45) !important;
+    border-radius: 8px !important;
+    box-shadow: 0 0 10px rgba(0, 229, 255, 0.15) !important;
+    transition: all 0.25s ease;
+}
+
+/* Hace legible el texto guía  */
+.input-neon::placeholder {
+    color: #64748b !important;
+    opacity: 1;
+}
+
+.input-neon:hover,
+.input-neon:focus,
+select.form-select:focus {
+    background-color: #0e1628 !important;
+    border-color: #00e5ff !important;
+    box-shadow: 0 0 16px rgba(0, 229, 255, 0.45), inset 0 0 6px rgba(0, 229, 255, 0.15) !important;
+    outline: none;
+}
+
+
+/* El Tono 1: Cian Acero / Hielo Metalizado (Para el Núcleo de Tareas) */
+.bloque-nucleo-naranja-cian {
+    background: linear-gradient(145deg, #0b1628 0%, #070e1a 100%) !important; /* Fondo azul oscuro */
+    border: 2px solid #ff6b00 !important; /* Línea de borde NARANJA sólida */
+    border-radius: 12px !important;
+    /* Luz LED naranja alrededor + brillo metálico interno */
+    box-shadow: 
+        0 0 18px rgba(255, 107, 0, 0.35),
+        0 0 36px rgba(249, 115, 22, 0.18),
+        inset 0 1px 1px rgba(255, 183, 77, 0.35),
+        inset 0 0 12px rgba(255, 107, 0, 0.12) !important;
+    transition: all 0.3s ease;
+}
+
+.bloque-nucleo-naranja-cian:hover {
+    border-color: #ff9100 !important; /* Naranja más brillante al pasar el mouse */
+    box-shadow: 
+        0 0 25px rgba(255, 107, 0, 0.55),
+        0 0 48px rgba(249, 115, 22, 0.28),
+        inset 0 1px 2px rgba(255, 213, 128, 0.5) !important;
+}
+
+/* El Tono 2: Cian Eléctrico / Cromo (Para el Formulario de Registro) */
+.bloque-formulario-violeta {
+    background: linear-gradient(145deg, #130f22 0%, #0a0914 100%) !important;
+    border: 1.5px solid #a855f7 !important;
+    border-radius: 12px !important;
+    box-shadow: 
+        0 0 22px rgba(168, 85, 247, 0.24),
+        inset 0 1px 1px rgba(216, 180, 254, 0.2) !important;
+    transition: all 0.3s ease;
+}
+
+.bloque-formulario-violeta:hover {
+    border-color: #c084fc !important;
+    box-shadow: 0 0 30px rgba(168, 85, 247, 0.42) !important;
+}
+
+
+/* El Tono 3: Cian Turquesa / Titanio (Para la Matriz de Tareas) */
+.bloque-cian-titanio {
+    background: linear-gradient(145deg, #0a1c24 0%, #081219 100%) !important;
+    border: 1.5px solid #2dd4bf !important;
+    border-radius: 10px !important;
+    box-shadow: 0 0 18px rgba(45, 212, 191, 0.2), inset 0 1px 1px rgba(153, 246, 228, 0.25) !important;
+    transition: all 0.3s ease;
+}
+.bloque-cian-titanio:hover {
+    box-shadow: 0 0 26px rgba(45, 212, 191, 0.38), inset 0 1px 2px rgba(153, 246, 228, 0.4) !important;
 }

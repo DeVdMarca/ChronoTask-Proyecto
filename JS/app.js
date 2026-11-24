@@ -1,6 +1,6 @@
 const taskManager = new TaskManager();
 let listaCarpetas = JSON.parse(localStorage.getItem("misCarpetasGuardadas")) || [];
-
+let xpTotal = Number(localStorage.getItem("chrono_xp_total")) || 0;
 const formularioTareas = document.querySelector("#taskForm");
 
 formularioTareas.addEventListener("submit", function(evento) {
@@ -67,7 +67,7 @@ function pintarTareas(textoFiltro =""){
 
         const estiloTitulo = estaCompletada ? "text-decoration-line-through text-secondary" : "text-white";
         const colorEstado = estaCompletada ? "bg-success text-white" : "bg-dark text-info border border-info";
-        const iconoCheck = estaCompletada ? "bi-check-circle-fill text-success" : "bi-circle text-secondary";
+       
 
         const carpetaActual = tarea.carpeta || "general";
 
@@ -86,11 +86,21 @@ function pintarTareas(textoFiltro =""){
             <td>
                 <span class="badge ${colorEstado}">${estadoActual}</span>
             </td>
-            <td class="small text-warning fw-semibold">${fechaFormateada}</td>
-            <td onclick="abrirModalTarea(${tarea.id})" style="cursor: pointer;" class="fw-bold ${estiloTitulo}" title="Haz clic para ver detalles y checklist">
-                ${tarea.titulo} <i class="bi bi-box-arrow-up-right small text-info ms-1"></i>
-            </td>
+           <td class="small text-warning fw-semibold">${fechaFormateada}</td>
 
+            <!-- 6. Acciones (Botón Detalles/Descripción + Botón Completar + Botón Eliminar) -->
+            <td class="text-end text-nowrap">
+                <button onclick="abrirModalTarea(${tarea.id})" 
+                        class="btn btn-sm btn-outline-warning me-1" 
+                        title="Abrir descripción y checklist">
+                    <i class="bi bi-card-text"></i>
+                </button>
+                <button onclick="alternarEstadoTarea(${tarea.id})" 
+                        class="btn btn-sm ${estaCompletada ? 'btn-success' : 'btn-outline-info'} me-1" 
+                        title="${estaCompletada ? 'Reactivar tarea' : 'Completar tarea'}">
+                    <i class="bi ${estaCompletada ? 'bi-check-circle-fill' : 'bi-check2'}"></i>
+                    ${estaCompletada ? 'Lista' : 'Completar'}
+                </button>
                 <button onclick="eliminarTareas(${tarea.id})" class="btn btn-sm btn-outline-danger border-0" title="Eliminar tarea">
                     <i class="bi bi-trash"></i>
                 </button>
@@ -114,21 +124,35 @@ taskManager.saveToLocalStorage();
     //console.log("Tarea eliminada. Almacen de tareas actualizado:", listaTareas);
 }
 
-function alternarEstadoTarea (idRecibido){
-    const tarea= taskManager.tasks.find(function(t){
-        return t.id === idRecibido;
-    });
-
-    if (tarea){
-        tarea.status = (tarea.status === "PORHACER") ? "COMPLETADA": "PORHACER";
-
-        taskManager.saveToLocalStorage();
-        pintarTareas();
+function alternarEstadoTarea(idRecibido) {
+    // Convertimos ambos IDs a Number para que siempre encuentre la tarea
+    const tarea = taskManager.tasks.find(t => Number(t.id) === Number(idRecibido));
+    if (!tarea) {
+        console.error("No encontré la tarea con ID:", idRecibido);
+        return;
     }
+
+    const puntos = obtenerPuntosPorPrioridad(tarea.impacto);
+    const yaEstabaCompletada = (tarea.status === "COMPLETADA");
+
+    if (!yaEstabaCompletada) {
+        tarea.status = "COMPLETADA";
+        tarea.estado = "COMPLETADA";
+        modificarExperiencia(puntos);
+    } else {
+        tarea.status = "PORHACER";
+        tarea.estado = "PORHACER";
+        modificarExperiencia(-puntos);
+    }
+
+    taskManager.saveToLocalStorage();
+    pintarTareas();
+    if (typeof actualizarContador === "function") actualizarContador();
 }
 
 pintarTareas(); // Llama a la función para pintar las tareas al cargar la página
 actualizarContador(); // Llama a la función para actualizar el contador al cargar la página
+actualizarBarraSincronizacion();
 
 function actualizarContador() {
     const elementoContador = document.getElementById("taskCounter");
@@ -393,15 +417,14 @@ function alternarSubtarea(indice) {
 function eliminarSubtarea(indice) {
     const tarea = taskManager.getTaskById(tareaActivaId);
     if (!tarea) return;
+    
 
     tarea.checklist.splice(indice, 1);
     taskManager.saveToLocalStorage();
     pintarChecklistModal(tarea);
 }
 
-// ==========================================
-// MÓDULO DE VISTAS RÁPIDAS Y CALENDARIO
-// ==========================================
+
 let vistaActual = "todas"; // Puede ser: "todas", "importantes", "completadas"
 
 function cambiarVistaFiltro(nuevaVista) {
@@ -516,4 +539,47 @@ function mostrarTareasDeFecha(fechaStr) {
             </li>
         `;
     });
+}
+
+
+
+function obtenerPuntosPorPrioridad(impacto){
+     if (!impacto) return 15;
+    const nivel = impacto.toLowerCase();
+    if (nivel === "alta") return 50;
+    if (nivel === "media") return 30;
+    return 15;
+}
+
+function obtenerNombreRango(nivel) {
+    if (nivel >= 10) return "Arquitecto Supremo Chrono";
+    if (nivel >= 7) return "Ingeniero Cibernético";
+    if (nivel >= 4) return "Desarrollador Full-Stack";
+    if (nivel >= 2) return "Operador de Sistemas";
+    return "Novato del Código";
+}
+
+function modificarExperiencia(cantidadPuntos) {
+    xpTotal = Math.max(0, xpTotal + cantidadPuntos); 
+    localStorage.setItem("chrono_xp_total", xpTotal);
+    actualizarBarraSincronizacion();
+}
+
+function actualizarBarraSincronizacion() {
+    const nivelActual = Math.floor(xpTotal / 100) + 1;
+    const progresoNivel = xpTotal % 100; 
+    const nombreRango = obtenerNombreRango(nivelActual);
+
+    const badgeRango = document.getElementById("rangoNucleo");
+    const textoXp = document.getElementById("textoNivelXp");
+    const barra = document.getElementById("barraSincronizacion");
+
+    if (badgeRango) badgeRango.innerHTML = `<i class="bi bi-cpu-fill me-1"></i>${nombreRango}`;
+    if (textoXp) textoXp.textContent = `Nivel ${nivelActual} • ${progresoNivel} / 100 XP (Total: ${xpTotal})`;
+    
+    if (barra) {
+        barra.style.width = `${progresoNivel}%`;
+        barra.setAttribute("aria-valuenow", progresoNivel);
+        barra.textContent = `${progresoNivel}%`;
+    }
 }
