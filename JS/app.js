@@ -120,7 +120,10 @@ function pintarTareas(textoFiltro =""){
                     <i class="bi ${estaCompletada ? 'bi-check-circle-fill' : 'bi-check2'}"></i>
                     ${estaCompletada ? 'Lista' : 'Completar'}
                 </button>
-                <button onclick="eliminarTareas(${tarea.id})" class="btn btn-sm btn-outline-danger border-0" title="Eliminar tarea">
+               <button onclick="eliminarTareas(${tarea.id})" 
+                        data-task-id="${tarea.id}"
+                        class="delete-button btn btn-sm btn-outline-danger border-0" 
+                        title="Eliminar tarea">
                     <i class="bi bi-trash"></i>
                 </button>
             </td>
@@ -132,17 +135,12 @@ function pintarTareas(textoFiltro =""){
 }
 console.log("¡Formulario detectado! El sensor está funcionando.");
 
-function eliminarTareas(idRecibido) {
-    taskManager.tasks = taskManager.tasks.filter(function(tarea) {
-    return tarea.id !== idRecibido;
-});
-taskManager.saveToLocalStorage();
-
+function eliminarTareas(id) {
+    taskManager.deleteTask(Number(id));
+    taskManager.saveToLocalStorage();
     pintarTareas();
-    actualizarContador();
-    //console.log("Tarea eliminada. Almacen de tareas actualizado:", listaTareas);
+    if (typeof actualizarContador === "function") actualizarContador();
 }
-
 function alternarEstadoTarea(idRecibido) {
     // Convertimos ambos IDs a Number para que siempre encuentre la tarea
     const tarea = taskManager.tasks.find(t => Number(t.id) === Number(idRecibido));
@@ -397,7 +395,7 @@ function pintarChecklistModal(tarea) {
     });
 }
 
-// Evento: Guardar descripción editada
+//Es el  Evento: Guardar descripción editada
 document.getElementById("btnGuardarDescripcion")?.addEventListener("click", function() {
     const tarea = taskManager.getTaskById(tareaActivaId);
     if (!tarea) return;
@@ -410,7 +408,7 @@ document.getElementById("btnGuardarDescripcion")?.addEventListener("click", func
     alert("¡Descripción guardada!");
 });
 
-// Evento: Añadir subtarea a la checklist
+// Es el Evento: Añadir subtarea a la checklist
 document.getElementById("btnAgregarSubtarea")?.addEventListener("click", function() {
     const tarea = taskManager.getTaskById(tareaActivaId);
     const inputSub = document.getElementById("modalInputSubtarea");
@@ -603,9 +601,9 @@ function actualizarBarraSincronizacion() {
     }
 }
 
-// ========================================================
-// MÓDULO DE ENFOQUE NEURAL + ASISTENTE DE VOZ + CAPTURA RÁPIDA
-// ========================================================
+
+// MÓDULO DE ENFOQUE NEURAL + ASISTENTE DE VOZ + CAPTURA RÁPIDA UNA LOCURA
+
 let tareaEnfoqueId = null;
 let intervaloEnfoque = null;
 let segundosTotalesBloque = 25 * 60;
@@ -749,7 +747,7 @@ function iniciarTemporizadorEnfoque() {
         segundosRestantesEnfoque--;
         actualizarDisplayRelojEnfoque();
 
-        // Aviso suave justo a mitad del bloque
+        //Da  Aviso suave justo a mitad del bloque
         const mitad = Math.floor(segundosTotalesBloque / 2);
         if (!avisoMitadEnviado && segundosRestantesEnfoque === mitad && mitad > 30) {
             avisoMitadEnviado = true;
@@ -811,7 +809,7 @@ function guardarDistraccionRapida() {
     const texto = input.value.trim();
     if (!texto) return;
 
-    // Fecha de hoy en formato compatible con tu tabla
+    // Fecha de hoy en formato compatible con la tabla que ya cree
     const hoyStr = new Date().toISOString().slice(0, 16);
 
     taskManager.addTask(
@@ -858,7 +856,7 @@ function renderizarNodosCarpetas() {
         </button>
     `;
 
-    // Botones dinámicos por cada carpeta existente
+    // Unos Botones dinámicos por cada carpeta existente
     Object.keys(conteo).forEach(carpeta => {
         const activa = carpetaFiltroActual.toLowerCase() === carpeta.toLowerCase();
         htmlBotones += `
@@ -945,9 +943,9 @@ function actualizarCentroMandoTactico() {
     actualizarRadarCritico();
 }
 
-// ========================================================
-// TERMINAL JARVIS: ASISTENTE CONVERSACIONAL PASO A PASO
-// ========================================================
+
+// TERMINAL JARVIS
+
 let conversacionJarvis = {
     activa: false,
     paso: 0, // 1: esperando título, 2: esperando carpeta, 3: esperando prioridad
@@ -1015,16 +1013,14 @@ function procesarComandoJarvis(desdeVoz = false) {
     const textoLimpio = textoOriginal.toLowerCase();
     input.value = "";
 
-    // Opción global para abortar cualquier flujo paso a paso
+    
     if (textoLimpio === "cancelar" || textoLimpio === "salir") {
         cancelarConversacionJarvis();
         responderTerminalJarvis("Operación cancelada. Esperando nueva orden.");
         return;
     }
 
-    // ====================================================
-    // FLUJO CONVERSACIONAL PASO A PASO (SI ESTÁ ACTIVO)
-    // ====================================================
+    
     if (conversacionJarvis.activa) {
         const seguirConVoz = conversacionJarvis.modoVoz;
 
@@ -1053,7 +1049,7 @@ function procesarComandoJarvis(desdeVoz = false) {
         }
 
         // PASO 3: Recibir la prioridad y guardar definitivamente
-                 // PASO 3: Recibir la prioridad y preguntar la fecha límite
+                 
         if (conversacionJarvis.paso === 3) {
             let prioridadElegida = null;
             if (textoLimpio.includes("alta")) prioridadElegida = "alta";
@@ -1096,7 +1092,7 @@ function procesarComandoJarvis(desdeVoz = false) {
                 // Si dices "hoy" o "ahora", deja fechaObjetivo tal como está
             }
 
-            // Formatea a YYYY-MM-DDTHH:MM respetando tu zona horaria local
+        
             const offsetMs = fechaObjetivo.getTimezoneOffset() * 60000;
             const fechaFormateada = new Date(fechaObjetivo.getTime() - offsetMs).toISOString().slice(0, 16);
 
@@ -1129,9 +1125,7 @@ function procesarComandoJarvis(desdeVoz = false) {
 
     }
 
-    // ====================================================
-    // COMANDOS INICIALES
-    // ====================================================
+    
 
     // 1. INICIAR CREACIÓN PASO A PASO ("crear", "crear tarea" o "crear [título]")
     if (textoLimpio === "crear" || textoLimpio === "crear tarea" || textoLimpio === "nueva tarea") {

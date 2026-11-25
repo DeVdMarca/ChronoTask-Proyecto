@@ -42,4 +42,16 @@ class TaskManager{
     getTaskById(taskId){
         return this.tasks.find(t=> t.id === taskId);
     }
+
+    deleteTask(taskId) {
+    const idNumerico = Number(taskId);
+    const newTasks = [];
+    for (let task of this.tasks) {
+        if (Number(task.id) !== idNumerico) {
+            newTasks.push(task);
+        }
+    }
+    this.tasks = newTasks;
 }
+}
+
