@@ -1,41 +1,60 @@
-## 💻 Acerca del Proyecto
+# ⚡ ChronoTask (OrgaTime) — Planificador de Tareas (Sprint 2)
 
-**Chrono Task** es un planificador de tareas interactivo y futurista diseñado bajo el concepto de un "Cerebro Digital". Rompe con las listas de tareas estáticas tradicionales al integrar gestión de tiempos críticos, enfoque pomodoro aislado y sincronización de paisajes sonoros. El sistema optimiza el flujo de trabajo y minimiza las distracciones durante largas jornadas de estudio o programación.
-
-Desarrollado de forma colaborativa y progresiva como proyecto principal para consolidar habilidades full-stack.
+Aplicación web interactiva para la gestión inteligente de tareas personales y académicas, desarrollada con **HTML5, CSS3, Bootstrap 5 y JavaScript Vanilla (ES6+)** con persistencia de datos en **`localStorage`**.
 
 ---
 
-## 🎛️ Arquitectura del Sistema (Secciones Clave)
+## 🔗 Enlaces del Proyecto
 
-El entorno de trabajo se divide en cuatro módulos neuronales integrados en una sola pantalla:
+* **🚀 Demo / Deploy en Vivo (GitHub Pages):** https://devdmarca.github.io/ChronoTask-Proyecto/
+---
 
-*   **Matriz de Nodos (Tablero Central):** Visualización de tareas mediante tarjetas organizadas por niveles de impacto visual según su criticidad.
-*   **Consola de Inyección (Formulario):** Módulo de entrada de datos con captura de metadatos de tareas (Nombre, Impacto, Tiempo Límite).
-*   **Núcleo de Enfoque (Modal Avanzado):** Centro de comandos que se activa al abrir una tarea. Incluye:
-    *   *Cronómetro Pomodoro:* Aísla la interfaz oscureciendo el fondo para concentración profunda.
-    *   *Campana de Alerta:* Animación de advertencia que reacciona visualmente cuando el tiempo límite está cerca.
-*   **Neural Soundscape (Widget de Audio):** Espacio de sincronización musical conectado a estados de enfoque y descanso.
+## 🎯 Alcance y Funcionalidades Desarrolladas en el Sprint 2
+
+Durante el **Sprint 2 (JavaScript y Gestión de Tareas)** se implementó toda la lógica dinámica del cliente mediante programación orientada a objetos, manipulación del DOM y almacenamiento persistente:
+
+### 1. Arquitectura de Datos (`TaskManager`)
+* **Clase `TaskManager`:** Centraliza la colección de tareas (`this.tasks`), generación de identificadores únicos (`Date.now()`) y sincronización automática con `localStorage` (`saveToLocalStorage()` / `loadFromLocalStorage()`).
+* **Creación Programada de Tareas:** Validación de formularios y creación dinámica de misiones con título, descripción, fecha límite, carpeta/categoría y nivel de impacto (`Alta`, `Media`, `Baja`).
+* **Gestión de Estados y Subtareas:** Alternancia de estado (`PORHACER` / `COMPLETADA`) con actualización de contadores en tiempo real y soporte para listas de verificación (*checklists*) internas por tarea.
+* **Eliminación de Tareas (`deleteTask(taskId)`):** Filtrado seguro por identificador numérico desde cada tarjeta/fila de la interfaz, actualización inmediata del DOM y persistencia tras recargar el navegador.
+
+### 2. Características Interactivas Adicionales
+* **Sistema de Gamificación (XP y Niveles):** Cálculo dinámico de puntos de experiencia según la prioridad de cada tarea completada, reflejado en una barra de progreso y rangos de usuario.
+* **Centro de Mando Táctico:**
+  * **Nodos de Carpeta:** Filtrado instantáneo por categoría con conteo de misiones en vivo.
+  * **Radar Crítico (< 24h):** Detección automática de tareas vencidas o próximas a vencer en menos de 24 horas.
+  * **Terminal Jarvis (Comandos y Voz):** Creación guiada paso a paso y control rápido mediante texto y reconocimiento/síntesis de voz (`Web Speech API`).
+* **Modo Enfoque Neural:** Temporizador editable (`25`, `45` o `60` minutos) vinculado a una misión activa con captura rápida de distracciones.
 
 ---
 
-## 🛠️ Stack Tecnológico
+## 📂 Estructura del Proyecto
 
-El proyecto está estructurado en dos grandes fases de desarrollo:
+```text
+Planificador-Tareas/
+├── css/
+│   └── style.css         # Estilos personalizados, tema oscuro y bordes neón
+├── js/
+│   ├── taskManager.js    # Clase TaskManager (CRUD y persistencia en localStorage)
+│   └── app.js            # Controlador del DOM, eventos, filtros, XP y Modo Enfoque
+├── index.html            # Estructura principal y modales de Bootstrap 5
+└── README.md             # Documentación del Sprint 2 y enlace de despliegue
+```
 
-### Frontend (Fase Actual)
-*   **HTML5 & CSS3:** Maquetación semántica y diseño con transiciones suaves y efectos *glassmorphism*.
-*   **Bootstrap v5:** Sistema de rejilla elástica (*Grid*), botones interactivos y contenedores modales.
-*   **JavaScript (ES6):** Manipulación dinámica del DOM, lógica del temporizador en tiempo real y gestión de estados de interfaz.
+---
 
-### Backend (Próxima Fase)
-*   **Java & Spring Boot:** Creación de la arquitectura del servidor y servicios RESTful.
-*   **Base de Datos SQL:** Persistencia formal de los datos y esquemas de tareas.
-*   **Operaciones CRUD:** Controladores lógicos para Crear, Leer, Actualizar y Eliminar nodos de trabajo de forma segura.
+## 🛠️ Tecnologías Utilizadas
 
----FIGMA ------
-https://trello.com/invite/b/6ae26837bc67c7e06059cfcf/ATTI04a7a816d92582f7238f31dfa8bef2b7E8CCE846/chronotask
----TRELLO-------
-(https://www.figma.com/design/fDTXii2UFBu3EwizoPNYBa/Chrono-Task?node-id=0-1&t=Bnm9Ecvm5Bgosk1O-1)
+* **HTML5** semántico
+* **CSS3** (Variables, gradientes, animaciones y modo oscuro)
+* **Bootstrap 5 & Bootstrap Icons** (Diseño responsivo y componentes modales)
+* **JavaScript (ES6+)** (Clases, Arrays, Eventos del DOM, `localStorage` y `Web Speech API`)
+
+---
+## 👨‍💻 Autor
+
+* **David Ricardo Marca Salazar** — *Desarrollo Frontend & Lógica JavaScript (Sprint 2)*
+
 
 
