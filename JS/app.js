@@ -87,47 +87,47 @@ function pintarTareas(textoFiltro =""){
 
 
          const estructuraFila = `
-        <tr class="tarjeta-hacker">
-            <td class="fw-bold ${estiloTitulo}">${tarea.titulo}</td>
-            <td>
-                <span class="badge bg-secondary bg-opacity-25 text-info border border-info">
-                    <i class="bi bi-folder2 me-1"></i>${carpetaActual}
-                </span>
-            </td>
-            <td>
-                <span class="badge ${claseColor} text-uppercase">${tarea.impacto}</span>
-            </td>
-            <td>
-                <span class="badge ${colorEstado}">${estadoActual}</span>
-            </td>
-           <td class="small text-warning fw-semibold">${fechaFormateada}</td>
+                    <tr data-task-id="${tarea.id}" class="tarjeta-hacker ${estaCompletada ? 'opacity-75' : ''}">
+                        <td class="fw-bold ${estiloTitulo}">${tarea.titulo}</td>
+                        <td>
+                            <span class="badge bg-secondary bg-opacity-25 text-info border border-info">
+                                <i class="bi bi-folder2 me-1"></i>${carpetaActual}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="badge ${claseColor} text-uppercase">${tarea.impacto}</span>
+                        </td>
+                        <td>
+                            <span class="badge ${colorEstado}">${estadoActual}</span>
+                        </td>
+                        <td class="small text-warning fw-semibold">${fechaFormateada}</td>
 
-            <!-- 6. Acciones (Enfoque + Detalles + Completar + Eliminar) -->
-            <td class="text-end text-nowrap">
-                <button onclick="abrirModoEnfoque(${tarea.id})" 
-                        class="btn btn-sm btn-outline-info me-1" 
-                        title="Iniciar Modo Enfoque con Voz">
-                    <i class="bi bi-bullseye"></i> Enfoque
-                </button>
-                <button onclick="abrirModalTarea(${tarea.id})" 
-                        class="btn btn-sm btn-outline-warning me-1" 
-                        title="Abrir descripción y checklist">
-                    <i class="bi bi-card-text"></i>
-                </button>
-                <button onclick="alternarEstadoTarea(${tarea.id})" 
-                        class="btn btn-sm ${estaCompletada ? 'btn-success' : 'btn-outline-success'} me-1" 
-                        title="${estaCompletada ? 'Reactivar tarea' : 'Completar tarea'}">
-                    <i class="bi ${estaCompletada ? 'bi-check-circle-fill' : 'bi-check2'}"></i>
-                    ${estaCompletada ? 'Lista' : 'Completar'}
-                </button>
-               <button onclick="eliminarTareas(${tarea.id})" 
-                        data-task-id="${tarea.id}"
-                        class="delete-button btn btn-sm btn-outline-danger border-0" 
-                        title="Eliminar tarea">
-                    <i class="bi bi-trash"></i>
-                </button>
-            </td>
-        </tr>
+                        <!-- 6. Acciones (Enfoque + Detalles + Mark As Done + Eliminar) -->
+                        <td class="text-end text-nowrap">
+                            <button onclick="abrirModoEnfoque(${tarea.id})" 
+                                    class="btn btn-sm btn-outline-info me-1" 
+                                    title="Iniciar Modo Enfoque con Voz">
+                                <i class="bi bi-bullseye"></i> Enfoque
+                            </button>
+                            <button onclick="abrirModalTarea(${tarea.id})" 
+                                    class="btn btn-sm btn-outline-warning me-1" 
+                                    title="Abrir descripción y checklist">
+                                <i class="bi bi-card-text"></i>
+                            </button>
+                            <button type="button" 
+                                    class="done-button btn btn-sm ${estaCompletada ? 'btn-success' : 'btn-outline-success'} me-1" 
+                                    title="Mark As Done">
+                                <i class="bi ${estaCompletada ? 'bi-check-circle-fill' : 'bi-check2'}"></i>
+                                ${estaCompletada ? 'DONE' : 'Mark As Done'}
+                            </button>
+                            <button onclick="eliminarTareas(${tarea.id})" 
+                                    data-task-id="${tarea.id}"
+                                    class="delete-button btn btn-sm btn-outline-danger border-0" 
+                                    title="Eliminar tarea">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
         `;
         contenedor.innerHTML += estructuraFila;
     })
@@ -1253,5 +1253,48 @@ function activarVozJarvis(continuacionAutomatica = false) {
         }
     };
 
+    
+
     reconocimiento.start();
+}
+
+const listaTareasDOM = document.querySelector("#tablaTareas");
+
+if (listaTareasDOM) {
+    listaTareasDOM.addEventListener("click", (event) => {
+        // Detecta si se hizo clic en el botón .done-button (o en su ícono interno)
+        const botonDone = event.target.closest(".done-button");
+
+        if (botonDone) {
+            // Recorre el DOM hacia arriba hasta encontrar el contenedor de la tarea (<tr>)
+            const parentTask = botonDone.closest("[data-task-id]");
+            if (!parentTask) return;
+
+            // Convierte el data-task-id de String a Number
+            const taskId = Number(parentTask.dataset.taskId);
+
+            // Recupera la tarea exacta usando getTaskById()
+            const task = taskManager.getTaskById(taskId);
+            if (!task) return;
+
+            // Actualiza el estado a 'DONE' y suma XP si no estaba completada
+            if (task.status !== "DONE" && task.status !== "COMPLETADA") {
+                task.status = "DONE";
+                if (typeof sumarXP === "function") {
+                    sumarXP(task.impacto || task.prioridad || "media");
+                }
+            } else {
+                task.status = "PORHACER";
+            }
+
+            // Guarda y vuelve a renderizar la lista
+            taskManager.saveToLocalStorage();
+            if (typeof taskManager.render === "function") {
+                taskManager.render();
+            } else {
+                pintarTareas();
+            }
+            if (typeof actualizarContador === "function") actualizarContador();
+        }
+    });
 }

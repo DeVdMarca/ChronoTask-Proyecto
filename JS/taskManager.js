@@ -43,6 +43,16 @@ class TaskManager{
         return this.tasks.find(t=> t.id === taskId);
     }
 
+    getTaskById(taskId) {
+        let foundTask;
+        for (let task of this.tasks) {
+            if (Number(task.id) === Number(taskId)) {
+                foundTask = task;
+            }
+        }
+        return foundTask;
+    }
+
     deleteTask(taskId) {
     const idNumerico = Number(taskId);
     const newTasks = [];
